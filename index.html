@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barbearia - Controle Geral</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/FontAwesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans p-3 max-w-md mx-auto pb-10">
+<div class="flex justify-between items-center mb-4">
+<h1 class="text-xl font-bold text-amber-500"><i class="fa-solid fa-scissors mr-2"></i>Barbearia System</h1>
+<div class="flex gap-1">
+<button onclick="exportarDados()" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]" title="Salvar Backup"><i class="fa-solid fa-download"></i></button>
+<button onclick="importarDados()" class="bg-green-600 text-white px-2 py-1 rounded text-[10px]" title="Restaurar Backup"><i class="fa-solid fa-upload"></i></button>
+</div>
+</div>
+
+<div class="flex border-b border-gray-700 mb-4 overflow-x-auto pb-2">
+<button onclick="mudarAba('dash')" id="btn-dash" class="px-3 py-1.5 bg-amber-600 rounded text-xs font-bold mr-1">Início</button>
+<button onclick="mudarAba('perf')" id="btn-perf" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Performance</button>
+<button onclick="mudarAba('barb')" id="btn-barb" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Barbeiros</button>
+<button onclick="mudarAba('srv')" id="btn-srv" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Serviços</button>
+<button onclick="mudarAba('atd')" id="btn-atd" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Atendimentos</button>
+<button onclick="mudarAba('cli')" id="btn-cli" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Clientes</button>
+<button onclick="mudarAba('est')" id="btn-est" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Estoque</button>
+<button onclick="mudarAba('men')" id="btn-men" class="px-3 py-1.5 bg-gray-800 rounded text-xs">Mensalistas</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="tab-dash" class="space-y-3">
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Faturamento Hoje</p><p id="d-fat-hoje" class="text-lg font-bold text-green-400">R$ 0,00</p></div>
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Atendimentos Hoje</p><p id="d-qtd-hoje" class="text-lg font-bold text-amber-400">0</p></div>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Faturamento do Mês</p><p id="d-fat-mes" class="text-base font-bold text-green-400">R$ 0,00</p></div>
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Faturamento do Ano</p><p id="d-fat-ano" class="text-base font-bold text-green-400">R$ 0,00</p></div>
+</div>
+<div class="bg-gray-800 p-3 rounded">
+<p class="text-xs font-bold text-amber-500 mb-2">Comissão / Saldo Barbeiros (50% Avulso / 0% Estoque)</p>
+<div id="d-barbeiros-resumo" class="text-xs text-gray-300 space-y-1">Nenhum atendimento registrado.</div>
+</div>
+<div class="bg-gray-800 p-3 rounded">
+<p class="text-xs font-bold text-amber-500 mb-2">Alertas de Vencimento (Próx. 5 dias)</p>
+<div id="d-alertas" class="text-xs text-gray-400">Tudo em dia!</div>
+</div>
+</div>
+
+<!-- PERFORMANCE -->
+<div id="tab-perf" class="space-y-3 hidden">
+<div class="bg-gray-800 p-3 rounded">
+<p class="text-xs font-bold text-amber-500 mb-3"><i class="fa-solid fa-chart-line mr-1"></i> Desempenho por Barbeiro</p>
+<div id="conteudo-performance" class="space-y-4 text-xs">Carregando performance...</div>
+</div>
+</div>
+
+<!-- BARBEIROS -->
+<div id="tab-barb" class="space-y-3 hidden">
+<button onclick="promptNovoBarbeiro()" class="w-full bg-amber-600 p-2.5 rounded text-xs font-bold shadow">+ Adicionar Barbeiro</button>
+<div id="lista-barb" class="space-y-2"><p class="text-xs text-gray-400 text-center">Nenhum barbeiro.</p></div>
+</div>
+
+<!-- SERVIÇOS -->
+<div id="tab-srv" class="space-y-3 hidden">
+<button onclick="promptNovoServico()" class="w-full bg-amber-600 p-2.5 rounded text-xs font-bold shadow">+ Adicionar Novo Serviço</button>
+<div id="lista-srv" class="space-y-2"><p class="text-xs text-gray-400 text-center">Nenhum serviço.</p></div>
+</div>
+
+<!-- ATENDIMENTOS -->
+<div id="tab-atd" class="space-y-3 hidden">
+<button onclick="promptAtd()" class="w-full bg-amber-600 p-2.5 rounded text-xs font-bold shadow">+ Novo Atendimento / Venda</button>
+<div id="lista-atd" class="space-y-2"><p class="text-xs text-gray-400 text-center">Nenhum atendimento.</p></div>
+</div>
+
+<!-- CLIENTES -->
+<div id="tab-cli" class="space-y-3 hidden">
+<input type="text" id="filtro-cliente" placeholder="🔍 Pesquisar cliente salvo..." oninput="atualizar()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
+<div id="lista-cli" class="space-y-2"><p class="text-xs text-gray-400 text-center">Nenhum cliente cadastrado.</p></div>
+</div>
+
+<!-- ESTOQUE -->
+<div id="tab-est" class="space-y-3 hidden">
+<button onclick="promptEst()" class="w-full bg-amber-600 p-2.5 rounded text-xs font-bold shadow">+ Adicionar Novo Produto</button>
+<div id="lista-est" class="space-y-2"><p class="text-xs text-gray-400 text-center">Nenhum produto.</p></div>
+</div>
+
+<!-- MENSALISTAS -->
+<div id="tab-men" class="space-y-3 hidden">
+<button onclick="promptMen()" class="w-full bg-amber-600 p-2.5 rounded text-xs font-bold shadow">+ Novo Mensalista</button>
+<div id="lista-men" class="space-y-2"><p class="text-xs text-gray-400 text-center">Nenhum mensalista.</p></div>
+</div>
+
+<script>
+const DB_KEY = 'barbearia_system_db_v13';
+
+let dadosPadrao = {
+a:[], e:[], m:[], b:[{nome:'Daniel', foto:''}],
+servicos:[{nome:'Corte', preco:40},{nome:'Barba', preco:30},{nome:'Corte + Barba', preco:65},{nome:'Sobrancelha', preco:20}],
+cli:[]
+};
+
+let d = dadosPadrao;
+try {
+let salvo = localStorage.getItem(DB_KEY) || localStorage.getItem('barbearia_system_db_v12') || localStorage.getItem('barbearia_system_db_v11');
+if(salvo) { d = JSON.parse(salvo); }
+} catch(e) { console.error("Erro ao carregar", e); }
+
+if(!d.b || (d.b.length > 0 && typeof d.b[0] === 'string')) { d.b = [{nome:'Daniel', foto:''}]; }
+if(!d.cli) d.cli = [];
+if(!d.servicos) d.servicos = [{nome:'Corte', preco:40},{nome:'Barba', preco:30},{nome:'Corte + Barba', preco:65},{nome:'Sobrancelha', preco:20}];
+
+function salvar(){ 
+try {
+localStorage.setItem(DB_KEY, JSON.stringify(d));
+} catch(e) { console.error("Erro ao salvar", e); }
+atualizar(); 
+}
+
+window.addEventListener('beforeunload', salvar);
+window.addEventListener('pagehide', salvar);
+
+function exportarDados(){
+let dadosStr = JSON.stringify(d);
+let blob = new Blob([dadosStr], {type: "application/json"});
+let url = URL.createObjectURL(blob);
+let a = document.createElement('a');
+a.href = url;
+a.download = "backup_barbearia.json";
+a.click();
+}
+
+function importarDados(){
+let jsonStr = prompt("Cole o código de backup gerado anteriormente aqui:");
+if(!jsonStr) return;
+try {
+let dadosCarregados = JSON.parse(jsonStr);
+if(dadosCarregados && dadosCarregados.b){
+d = dadosCarregados;
+salvar();
+alert("Dados restaurados com sucesso!");
+} else {
+alert("Formato inválido.");
+}
+} catch(e){
+alert("Erro ao ler o código de backup.");
+}
+}
+
+function mudarAba(id){
+['dash','perf','barb','srv','atd','cli','est','men'].forEach(x=>{
+let el = document.getElementById('tab-'+x);
+if(el) el.classList.add('hidden');
+let btn = document.getElementById('btn-'+x);
+if(btn) btn.className='px-3 py-1.5 bg-gray-800 rounded text-xs mr-1';
+});
+let tAtiva = document.getElementById('tab-'+id);
+if(tAtiva) tAtiva.classList.remove('hidden');
+let bAtivo = document.getElementById('btn-'+id);
+if(bAtivo) bAtivo.className='px-3 py-1.5 bg-amber-600 rounded text-xs font-bold mr-1';
+atualizar();
+}
+
+function promptNovoBarbeiro(){
+let nome = prompt('Nome do Barbeiro:'); if(!nome) return;
+let foto = prompt('Link da Foto (URL opcional):', '');
+d.b.push({nome, foto}); salvar();
+}
+function editarBarbeiro(i){
+let b = d.b[i];
+let novo = prompt('Editar nome:', b.nome); if(!novo) return;
+let novaFoto = prompt('Editar Link da Foto (URL):', b.foto || '');
+b.nome = novo; b.foto = novaFoto; salvar();
+}
+function excluirBarbeiro(i){
+if(confirm("Excluir barbeiro?")){ d.b.splice(i, 1); salvar(); }
+}
+
+function promptNovoServico(){
+let nome = prompt('Nome do Serviço:'); if(!nome) return;
+let preco = parseFloat(prompt('Preço Padrão (R$):', '40')); if(isNaN(preco)) return;
+d.servicos.push({nome, preco}); salvar();
+}
+function editarServico(i){
+let s = d.servicos[i];
+let nn = prompt('Nome do Serviço:', s.nome); if(!nn) return;
+let np = parseFloat(prompt('Preço Padrão (R$):', s.preco)); if(isNaN(np)) return;
+s.nome = nn; s.preco = np; salvar();
+}
+function excluirServico(i){
+if(confirm("Remover serviço?")){ d.servicos.splice(i, 1); salvar(); }
+}
+
+function verificarCliente(nome, tel){
+let limpo = nome.trim().toLowerCase();
+let existe = d.cli.find(x => x.nome.toLowerCase() === limpo);
+if(!existe){
+d.cli.push({id: Date.now(), nome: nome.trim(), tel: tel || ''});
+} else if(tel && !existe.tel){
+existe.tel = tel;
+}
+}
+
+function selecionarClienteFiltrado(listaNomes, titulo){
+let termo = "";
+while(true){
+let filtrados = listaNomes.filter(n => n.toLowerCase().includes(termo.toLowerCase()));
+let textoOpcoes = filtrados.map((cli, idx) => (idx + 1) + " - " + cli).join("\n");
+let msg = titulo + "\n(Filtrando por: '" + termo + "')\n\n0 - Digitar nome novo\n" + (textoOpcoes ? textoOpcoes + "\n\n" : "Nenhum encontrado\n\n") + "Digite parte do nome para filtrar ou o número correspondente:";
+let resp = prompt(msg);
+if(resp === null) return null;
+resp = resp.trim();
+if(resp === "0") {
+let novo = prompt("Digite o nome completo:");
+return novo ? novo.trim() : null;
+}
+let num = parseInt(resp);
+if(!isNaN(num) && num > 0 && num <= filtrados.length){
+return filtrados[num - 1];
+}
+termo = resp;
+}
+}
+
+function promptAtd(){
+if(d.b.length === 0){ alert('Cadastre um barbeiro primeiro.'); mudarAba('barb'); return; }
+
+let barbOpcoes = d.b.map((b, i) => (i+1) + " - " + b.nome).join("\n");
+let bEscolha = prompt("Escolha o Barbeiro:\n" + barbOpcoes + "\nDigite o número:");
+let index = parseInt(bEscolha) - 1;
+if(isNaN(index) || !d.b[index]) return;
+let barbeiro = d.b[index].nome;
+
+let tipoEscolha = prompt("Escolha o tipo de atendimento:\n1 - Cliente Avulso\n2 - Cliente Mensalista\n\nDigite 1 ou 2:");
+if(tipoEscolha !== "1" && tipoEscolha !== "2") return;
+let tipo = (tipoEscolha === "2") ? 'Mensalista' : 'Avulso';
+let clienteEscolhido = "";
+
+if(tipo === 'Mensalista'){
+if(d.m.length === 0){ alert('Não há mensalistas cadastrados.'); return; }
+let listaMensalistasNomes = d.m.map(m => m.c);
+clienteEscolhido = selecionarClienteFiltrado(listaMensalistasNomes, "--- SELECIONAR MENSALISTA ---");
+if(!clienteEscolhido) return;
+
+let produtoVendidoId = null;
+let valorProduto = 0;
+let nomeProduto = "";
+let vTotal = 0;
+
+if(d.e.length > 0){
+let estTexto = d.e.map((prod, idx) => (idx + 1) + " - " + prod.n + " (Estoque: " + prod.q + " | R$ " + prod.preco.toFixed(2) + ")").join("\n");
+let escolhaEst = prompt("Deseja incluir algum produto do estoque?\n0 - Nenhum\n\n" + estTexto + "\n\nDigite o número do produto:");
+let eIdx = parseInt(escolhaEst);
+if(eIdx > 0 && eIdx <= d.e.length){
+let prodEscolhido = d.e[eIdx - 1];
+if(prodEscolhido.q > 0){
+produtoVendidoId = prodEscolhido.id;
+valorProduto = prodEscolhido.preco; 
+nomeProduto = prodEscolhido.n;
+vTotal += valorProduto; 
+prodEscolhido.q -= 1; 
+} else { alert('Produto sem estoque disponível!'); }
+}
+}
+
+let tel = prompt('Telefone do Cliente (opcional):', '');
+verificarCliente(clienteEscolhido, tel);
+
+let agora = new Date();
+d.a.unshift({
+id: Date.now(), barbeiro, c: clienteEscolhido.trim(), tel, s: 'Plano Mensal', valServ: 0,
+v: vTotal, tipo: 'Mensalista', prodId: produtoVendidoId, valProd: valorProduto, nomeProd: nomeProduto,
+dataIso: agora.toISOString(), t: agora.toLocaleDateString()
+});
+salvar();
+return;
+}
+
+let mensalistasNomesSet = new Set(d.m.map(m => m.c.toLowerCase()));
+let listaAvulsosNomes = [...new Set(d.cli.filter(c => !mensalistasNomesSet.has(c.nome.toLowerCase())).map(c => c.nome))];
+
+clienteEscolhido = selecionarClienteFiltrado(listaAvulsosNomes, "--- SELECIONAR CLIENTE AVULSO ---");
+if(!clienteEscolhido) return;
+
+let servTexto = d.servicos.map((s, idx) => (idx + 1) + " - " + s.nome + " (R$ " + s.preco.toFixed(2) + ")").join("\n");
+let escolhaServ = prompt("Escolha o Serviço:\n0 - Outro personalizado\n\n" + servTexto + "\n\nDigite o número:");
+let sIdx = parseInt(escolhaServ);
+let servico = "";
+let valorServico = 0;
+
+if(sIdx > 0 && sIdx <= d.servicos.length){
+let servObj = d.servicos[sIdx - 1];
+servico = servObj.nome;
+valorServico = parseFloat(prompt('Confirmar ou alterar o valor para este atendimento (R$):', servObj.preco)) || servObj.preco;
+} else {
+servico = prompt('Digite o nome do serviço personalizado:');
+if(!servico) return;
+valorServico = parseFloat(prompt('Valor do serviço (R$):', '40')) || 0;
+}
+
+let vTotal = valorServico;
+let produtoVendidoId = null;
+let valorProduto = 0;
+let nomeProduto = "";
+
+if(d.e.length > 0){
+let estTexto = d.e.map((prod, idx) => (idx + 1) + " - " + prod.n + " (Estoque: " + prod.q + " | R$ " + prod.preco.toFixed(2) + ")").join("\n");
+let escolhaEst = prompt("Deseja incluir algum produto do estoque?\n0 - Nenhum\n\n" + estTexto + "\n\nDigite o número do produto:");
+let eIdx = parseInt(escolhaEst);
+if(eIdx > 0 && eIdx <= d.e.length){
+let prodEscolhido = d.e[eIdx - 1];
+if(prodEscolhido.q > 0){
+produtoVendidoId = prodEscolhido.id;
+valorProduto = prodEscolhido.preco; 
+nomeProduto = prodEscolhido.n;
+vTotal += valorProduto; 
+prodEscolhido.q -= 1; 
+} else { alert('Produto sem estoque disponível!'); }
+}
+}
+
+let tel = prompt('Telefone do Cliente (opcional):', '');
+verificarCliente(clienteEscolhido, tel);
+
+let agora = new Date();
+d.a.unshift({
+id: Date.now(), barbeiro, c: clienteEscolhido.trim(), tel, s: servico, valServ: valorServico,
+v: vTotal, tipo: 'Avulso', prodId: produtoVendidoId, valProd: valorProduto, nomeProd: nomeProduto,
+dataIso: agora.toISOString(), t: agora.toLocaleDateString()
+});
+salvar();
+}
+
+function editarAtd(id){
+let item = d.a.find(x => x.id === id);
+if(!item) return;
+let nc = prompt('Editar Nome do Cliente:', item.c); if(!nc) return;
+let ns = prompt('Editar Serviço:', item.s); if(!ns) return;
+let nv = parseFloat(prompt('Editar Valor Total (R$):', item.v)); if(isNaN(nv)) return;
+item.c = nc.trim(); item.s = ns; item.v = nv;
+verificarCliente(nc, item.tel);
+salvar();
+}
+
+function excluirAtd(id){
+if(confirm("Excluir atendimento?")){ d.a = d.a.filter(x => x.id !== id); salvar(); }
+}
+
+function promptEst(){
+let n = prompt('Nome do produto:'); if(!n) return;
+let q = parseInt(prompt('Quantidade inicial:')); if(isNaN(q)) return;
+let preco = parseFloat(prompt('Preço de venda do produto (R$):', '30')); if(isNaN(preco)) return;
+d.e.push({id:Date.now(), n, q, preco}); salvar();
+}
+function altEst(id, qt){
+let p = d.e.find(x => x.id === id);
+if(p){ p.q += qt; if(p.q < 0) p.q = 0; salvar(); }
+}
+function editarEstoque(id){
+let p = d.e.find(x => x.id === id);
+if(!p) return;
+let nn = prompt('Nome:', p.n); 
+let nq = parseInt(prompt('Qtd:', p.q));
+let npr = parseFloat(prompt('Preço (R$):', p.preco));
+if(nn && !isNaN(nq) && !isNaN(npr)){ p.n = nn; p.q = nq; p.preco = npr; salvar(); }
+}
+function excluirEstoque(id){
+if(confirm("Remover produto?")){ d.e = d.e.filter(x => x.id !== id); salvar(); }
+}
+
+function promptMen(){
+let c = prompt('Nome do Mensalista:'); if(!c) return;
+let v = prompt('Data de Vencimento (AAAA-MM-DD):', new Date().toISOString().split('T')[0]); if(!v) return;
+let valPlano = parseFloat(prompt('Valor Total do Plano Mensal (R$):', '120')) || 0;
+verificarCliente(c);
+d.m.push({id: Date.now(), c: c.trim(), v, val: valPlano, pago: false, dataPagamento: null});
+salvar();
+}
+
+function editarMensalista(id){
+let m = d.m.find(x => x.id === id);
+if(!m) return;
+let nc = prompt('Editar Nome do Mensalista:', m.c); if(!nc) return;
+let nv = prompt('Editar Data de Vencimento (AAAA-MM-DD):', m.v); if(!nv) return;
+let nval = parseFloat(prompt('Editar Valor Total do Plano (R$):', m.val || 120)); if(isNaN(nval)) return;
+m.c = nc.trim(); m.v = nv; m.val = nval;
+verificarCliente(nc);
+salvar();
+}
+
+function alternarPagamento(id){
+let m = d.m.find(x => x.id === id);
+if(m){ m.pago = !m.pago; m.dataPagamento = m.pago ? new Date().toISOString() : null; salvar(); }
+}
+
+function excluirMensalista(id){
+if(confirm("Excluir mensalista?")){ d.m = d.m.filter(x => x.id !== id); salvar(); }
+}
+
+function atualizar(){
+let hojeStr = new Date().toLocaleDateString();
+let dataAtual = new Date();
+let mesAtual = dataAtual.getMonth();
+let anoAtual = dataAtual.getFullYear();
+
+let fatHoje = 0, qtdHoje = 0, fatMes = 0, fatAno = 0;
+let comissaoBarbeiro = {};
+d.b.forEach(b => comissaoBarbeiro[b.nome] = 0);
+
+d.a.forEach(x => {
+let dataReg = x.dataIso ? new Date(x.dataIso) : new Date();
+let valTotal = x.v || 0;
+if(x.t === hojeStr){ fatHoje += valTotal; qtdHoje++; }
+if(dataReg.getMonth() === mesAtual && dataReg.getFullYear() === anoAtual){
+fatMes += valTotal;
+if(comissaoBarbeiro[x.barbeiro] !== undefined){
+let parteServico = x.valServ !== undefined ? x.valServ : (valTotal - (x.valProd || 0));
+let comissaoServ = (x.tipo === 'Mensalista') ? 0 : (parteServico * 0.50);
+comissaoBarbeiro[x.barbeiro] += comissaoServ;
+}
+}
+if(dataReg.getFullYear() === anoAtual){ fatAno += valTotal; }
+});
+
+d.m.forEach(men => {
+if(men.pago && men.dataPagamento){
+let dataPagObj = new Date(men.dataPagamento);
+let valPlano = men.val || 0;
+if(dataPagObj.toLocaleDateString() === hojeStr){ fatHoje += valPlano; }
+if(dataPagObj.getMonth() === mesAtual && dataPagObj.getFullYear() === anoAtual){ fatMes += valPlano; }
+if(dataPagObj.getFullYear() === anoAtual){ fatAno += valPlano; }
+}
+let atendMensalista = d.a.filter(x => x.c.toLowerCase() === men.c.toLowerCase() && x.tipo === 'Mensalista');
+if(atendMensalista.length > 0){
+let valorPorAtendimento = (men.val / 4);
+atendMensalista.forEach(atd => {
+let dataReg = new Date(atd.dataIso);
+if(dataReg.getMonth() === mesAtual && dataReg.getFullYear() === anoAtual){
+if(comissaoBarbeiro[atd.barbeiro] !== undefined){ comissaoBarbeiro[atd.barbeiro] += valorPorAtendimento; }
+}
+});
+}
+});
+
+document.getElementById('d-fat-hoje').innerText = 'R$ ' + fatHoje.toFixed(2);
+document.getElementById('d-qtd-hoje').innerText = qtdHoje;
+document.getElementById('d-fat-mes').innerText = 'R$ ' + fatMes.toFixed(2);
+document.getElementById('d-fat-ano').innerText = 'R$ ' + fatAno.toFixed(2);
+
+let resumoBarbHtml = "";
+for(let barb in comissaoBarbeiro){
+resumoBarbHtml += `<div>👤 <b>${barb}:</b> R$ ${comissaoBarbeiro[barb].toFixed(2)} (Comissão)</div>`;
+}
+document.getElementById('d-barbeiros-resumo').innerHTML = resumoBarbHtml || 'Nenhum dado.';
+
+let perfHtml = "";
+let diaHojeNum = dataAtual.getDate();
+d.b.forEach(b => {
+let atdsBarb = d.a.filter(x => x.barbeiro === b.nome);
+let atdsHoje = atdsBarb.filter(x => x.t === hojeStr);
+let atdsMes = atdsBarb.filter(x => {
+let dt = new Date(x.dataIso);
+return dt.getMonth() === mesAtual && dt.getFullYear() === anoAtual;
+});
+
+let servHoje = atdsHoje.length;
+let prodHoje = atdsHoje.filter(x => x.prodId).length;
+let cliHoje = atdsHoje.length;
+
+let servMes = atdsMes.length;
+let prodMes = atdsMes.filter(x => x.prodId).length;
+let cliMes = atdsMes.length;
+let mediaDiariaMes = (cliMes / (diaHojeNum > 0 ? diaHojeNum : 1)).toFixed(1);
+
+let mesesAnterioresMap = {};
+atdsBarb.forEach(x => {
+let dt = new Date(x.dataIso);
+let chaveMes = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2, '0')}`;
+let nomeMesAno = dt.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+if(!mesesAnterioresMap[chaveMes]) mesesAnterioresMap[chaveMes] = { nome: nomeMesAno, clientes: 0, servicos: 0, produtos: 0 };
+mesesAnterioresMap[chaveMes].clientes++;
+mesesAnterioresMap[chaveMes].servicos++;
+if(x.prodId) mesesAnterioresMap[chaveMes].produtos++;
+});
+
+let comparativoHtml = Object.keys(mesesAnterioresMap).sort().reverse().map(k => {
+let m = mesesAnterioresMap[k];
+return `<div class="flex justify-between border-b border-gray-700 py-1 text-[11px] text-gray-300">
+<span>📅 ${m.nome}</span>
+<span>Clis: <b>${m.clientes}</b> | Srv: <b>${m.servicos}</b> | Prod: <b>${m.produtos}</b></span>
+</div>`;
+}).join('') || '<p class="text-gray-500 text-[10px]">Sem histórico anterior.</p>';
+
+perfHtml += `<div class="bg-gray-900 p-3 rounded mb-3 border border-gray-700">
+<div class="flex items-center gap-2 mb-2">
+${b.foto ? `<img src="${b.foto}" class="w-7 h-7 rounded-full object-cover border border-amber-500">` : `<div class="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-amber-500 font-bold text-xs">✂️</div>`}
+<span class="font-bold text-amber-400 text-sm">${b.nome}</span>
+</div>
+<div class="grid grid-cols-2 gap-2 mb-2 bg-gray-800 p-2 rounded">
+<div>
+<p class="text-[10px] text-gray-400 font-bold">HOJE</p>
+<p>Clientes/Atend.: <b>${cliHoje}</b></p>
+<p>Serviços: <b>${servHoje}</b></p>
+<p>Produtos Vendidos: <b>${prodHoje}</b></p>
+</div>
+<div>
+<p class="text-[10px] text-gray-400 font-bold">ESTE MÊS</p>
+<p>Clientes/Atend.: <b>${cliMes}</b></p>
+<p>Serviços: <b>${servMes}</b></p>
+<p>Produtos Vendidos: <b>${prodMes}</b></p>
+<p class="text-amber-300">Média Diária: <b>${mediaDiariaMes} cli/dia</b></p>
+</div>
+</div>
+<p class="text-[10px] font-bold text-gray-400 mb-1">Comparativo Mês a Mês:</p>
+<div class="space-y-1">${comparativoHtml}</div>
+</div>`;
+});
+document.getElementById('conteudo-performance').innerHTML = perfHtml || '<p class="text-gray-400 text-center">Nenhum barbeiro cadastrado.</p>';
+
+document.getElementById('lista-barb').innerHTML = d.b.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum barbeiro.</p>' : d.b.map((b, i) => 
+`<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
+<div class="flex items-center gap-2">
+${b.foto ? `<img src="${b.foto}" class="w-8 h-8 rounded-full object-cover border border-amber-500">` : `<div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-amber-500 font-bold">✂️</div>`}
+<span><b>${b.nome}</b></span>
+</div>
+<div>
+<button onclick="editarBarbeiro(${i})" class="bg-blue-600 px-2.5 py-1 rounded text-[10px] mr-1">✏️</button>
+<button onclick="excluirBarbeiro(${i})" class="bg-red-600 px-2.5 py-1 rounded text-[10px]">🗑️</button>
+</div>
+</div>`).join('');
+
+document.getElementById('lista-srv').innerHTML = d.servicos.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum serviço.</p>' : d.servicos.map((s, i) => 
+`<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
+<span><b>🛠️ ${s.nome}</b> - <span class="text-green-400">R$ ${s.preco.toFixed(2)}</span></span>
+<div>
+<button onclick="editarServico(${i})" class="bg-blue-600 px-2.5 py-1 rounded text-[10px] mr-1">✏️</button>
+<button onclick="excluirServico(${i})" class="bg-red-600 px-2.5 py-1 rounded text-[10px]">🗑️</button>
+</div>
+</div>`).join('');
+
+document.getElementById('lista-atd').innerHTML = d.a.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum atendimento.</p>' : d.a.map(x => 
+`<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
+<div>
+<strong>✂️ ${x.barbeiro}</strong><br>
+👤 <span onclick="verHistorico('${x.c}')" class="text-amber-300 underline cursor-pointer">${x.c}</span> ${x.tel ? '('+x.tel+')' : ''} - ${x.s} ${x.nomeProd ? '+ '+x.nomeProd : ''}<br>
+<span class="text-gray-400 text-[10px]">${x.t} | [${x.tipo || 'Avulso'}]</span>
+</div>
+<div class="text-right">
+<span class="text-green-400 font-bold block mb-1">R$${x.v.toFixed(2)}</span>
+<button onclick="editarAtd(${x.id})" class="bg-blue-600 px-2 py-0.5 rounded text-[10px] mr-1">✏️</button>
+<button onclick="excluirAtd(${x.id})" class="bg-red-600 px-2 py-0.5 rounded text-[10px]">🗑️</button>
+</div>
+</div>`).join('');
+
+let termoBusca = (document.getElementById('filtro-cliente').value || "").toLowerCase();
+let clientesFiltrados = d.cli.filter(c => c.nome.toLowerCase().includes(termoBusca));
+document.getElementById('lista-cli').innerHTML = clientesFiltrados.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum cliente encontrado.</p>' : clientesFiltrados.map(cli => {
+let gastosCli = d.a.filter(x => x.c.toLowerCase() === cli.nome.toLowerCase()).reduce((acc, curr) => acc + curr.v, 0);
+let qtdAtend = d.a.filter(x => x.c.toLowerCase() === cli.nome.toLowerCase()).length;
+return `<div onclick="verHistorico('${cli.nome}')" class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center cursor-pointer hover:bg-gray-700">
+<div>
+<b>👤 ${cli.nome}</b> ${cli.tel ? '• ' + cli.tel : ''}<br>
+<span class="text-gray-400">Atendimentos: ${qtdAtend}</span>
+</div>
+<div class="text-right">
+<span class="text-green-400 font-bold">Total: R$ ${gastosCli.toFixed(2)}</span>
+<span class="text-[10px] text-amber-400 block">Ver histórico 🔍</span>
+</div>
+</div>`;
+}).join('');
+
+document.getElementById('lista-est').innerHTML = d.e.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum produto.</p>' : d.e.map(x => 
+`<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
+<div><b>📦 ${x.n}</b><br><span class="text-gray-400">Qtd: <b class="text-amber-400">${x.q}</b> | Preço: <b class="text-green-400">R$ ${(x.preco||0).toFixed(2)}</b></span></div>
+<div class="flex items-center gap-1">
+<button onclick="altEst(${x.id},-1)" class="bg-gray-700 px-2 py-1 rounded font-bold">-</button>
+<button onclick="altEst(${x.id},1)" class="bg-gray-700 px-2 py-1 rounded font-bold">+</button>
+<button onclick="editarEstoque(${x.id})" class="bg-blue-600 px-2 py-1 rounded text-[10px] ml-1">✏️</button>
+<button onclick="excluirEstoque(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
+</div>
+</div>`).join('');
+
+let alertasHtml = "";
+let hojeDate = new Date();
+hojeDate.setHours(0,0,0,0);
+d.m.forEach(x => {
+let dataVenc = new Date(x.v + 'T00:00:00');
+let diffDias = Math.ceil((dataVenc - hojeDate) / (1000 * 60 * 60 * 24));
+if(!x.pago && diffDias <= 5){
+let statusMsg = diffDias < 0 ? `⚠️ Vencido há ${Math.abs(diffDias)} dia(s)!` : (diffDias === 0 ? `⚠️ Vence HOJE!` : `⚠️ Vence em ${diffDias} dia(s)!`);
+alertasHtml += `<div class="flex justify-between items-center bg-gray-900 p-2 rounded mb-1 border-l-2 border-red-500">
+<span><b>${x.c}</b> (Venc: ${x.v})<br><span class="text-red-400 font-bold">${statusMsg}</span></span>
+<button onclick="alternarPagamento(${x.id})" class="bg-gray-700 px-2 py-1 rounded text-[10px]">Marcar Pago</button>
+</div>`;
+}
+});
+document.getElementById('d-alertas').innerHTML = alertasHtml || 'Tudo em dia com os prazos!';
+
+document.getElementById('lista-men').innerHTML = d.m.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum mensalista.</p>' : d.m.map(x => 
+`<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
+<span>👤 <b>${x.c}</b><br><span class="text-gray-400">Venc: ${x.v} | Plano: R$${(x.val||0).toFixed(2)} (R$${((x.val||0)/4).toFixed(2)}/atd)</span><br><span class="${x.pago?'text-green-400':'text-red-400'}">${x.pago?'Pago':'Pendente'}</span></span>
+<div>
+<button onclick="alternarPagamento(${x.id})" class="bg-gray-700 px-2 py-1 rounded text-[10px] mr-1" title="Alterar Pagamento">💰</button>
+<button onclick="editarMensalista(${x.id})" class="bg-blue-600 px-2 py-1 rounded text-[10px] mr-1" title="Editar">✏️</button>
+<button onclick="excluirMensalista(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]" title="Excluir">🗑️</button>
+</div>
+</div>`).join('');
+}
+
+function verHistorico(nomeCliente){
+let historico = d.a.filter(x => x.c.toLowerCase() === nomeCliente.toLowerCase());
+let msg = "Histórico de Atendimentos - " + nomeCliente + "\n\n";
+if(historico.length === 0){
+msg += "Nenhum atendimento registrado para este cliente.";
+} else {
+let total = 0;
+historico.forEach(h => {
+msg += `• ${h.t} | ${h.s} (R$ ${h.v.toFixed(2)}) com ${h.barbeiro}\n`;
+total += h.v;
+});
+msg += `\nTotal Registrado: R$ ${total.toFixed(2)}`;
+}
+alert(msg);
+}
+
+atualizar();
+</script>
+</body>
+</html>
