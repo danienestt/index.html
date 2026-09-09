@@ -28,11 +28,11 @@
 <button onclick="mudarAba('dash')" id="btn-dash" class="px-3 py-1.5 bg-amber-600 rounded text-xs font-bold mr-1">Início</button>
 <button onclick="mudarAba('atd')" id="btn-atd" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Atendimentos</button>
 <button onclick="mudarAba('men')" id="btn-men" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Mensalistas</button>
+<button onclick="mudarAba('cli')" id="btn-cli" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Clientes</button>
 <button onclick="mudarAba('caixa')" id="btn-caixa" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Caixa</button>
 <button onclick="mudarAba('perf')" id="btn-perf" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Performance</button>
 <button onclick="mudarAba('barb')" id="btn-barb" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Barbeiros</button>
 <button onclick="mudarAba('srv')" id="btn-srv" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Serviços</button>
-<button onclick="mudarAba('cli')" id="btn-cli" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Clientes</button>
 <button onclick="mudarAba('est')" id="btn-est" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Estoque</button>
 <button onclick="mudarAba('desp')" id="btn-desp" class="px-3 py-1.5 bg-gray-800 rounded text-xs">Despesas</button>
 </div>
@@ -43,6 +43,18 @@
 <h3 id="modal-titulo" class="text-sm font-bold text-amber-500 border-b border-gray-700 pb-2">Selecione</h3>
 <div id="modal-conteudo" class="space-y-2 max-h-60 overflow-y-auto"></div>
 <button onclick="fecharModalSelecao()" class="w-full bg-gray-700 hover:bg-gray-600 text-white p-2 rounded text-xs font-bold">Cancelar</button>
+</div>
+</div>
+
+<!-- MODAL HISTÓRICO DO CLIENTE -->
+<div id="modal-historico" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+<div class="bg-gray-800 border border-gray-700 w-full max-w-md rounded-lg p-4 space-y-3 shadow-xl">
+<div class="flex justify-between items-center border-b border-gray-700 pb-2">
+<h3 id="hist-titulo" class="text-sm font-bold text-amber-500">Histórico do Cliente</h3>
+<button onclick="fecharModalHistorico()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+</div>
+<div id="hist-conteudo" class="space-y-2 max-h-72 overflow-y-auto text-xs"></div>
+<button onclick="fecharModalHistorico()" class="w-full bg-gray-700 hover:bg-gray-600 text-white p-2 rounded text-xs font-bold">Fechar</button>
 </div>
 </div>
 
@@ -278,6 +290,35 @@ atualizar();
 }
 
 function fecharModalSelecao(){ document.getElementById('modal-selecao').classList.add('hidden'); }
+function fecharModalHistorico(){ document.getElementById('modal-historico').classList.add('hidden'); }
+
+function verHistoricoCliente(nomeCliente){
+let tEl = document.getElementById('hist-titulo');
+let cEl = document.getElementById('hist-conteudo');
+tEl.innerText = `Histórico de: ${nomeCliente}`;
+cEl.innerHTML = "";
+
+let atendimentosCliente = d.a.filter(x => x.c.toLowerCase() === nomeCliente.toLowerCase());
+if(atendimentosCliente.length === 0){
+cEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Nenhum atendimento registrado para este cliente.</p>';
+} else {
+atendimentosCliente.forEach(atd => {
+let div = document.createElement('div');
+div.className = "bg-gray-900 p-2.5 rounded border border-gray-700 space-y-1";
+div.innerHTML = `
+<div class="flex justify-between text-[11px] text-amber-400 font-bold">
+<span><i class="fa-solid fa-calendar mr-1"></i> ${atd.t || 'Data não informada'}</span>
+<span class="text-green-400">${fmtVal('R$ ' + atd.v.toFixed(2))}</span>
+</div>
+<div class="text-gray-300"><b>Serviço:</b> ${atd.s}</div>
+${atd.nomeProd ? `<div class="text-gray-300"><b>Produto:</b> ${atd.nomeProd}</div>` : ''}
+<div class="text-[10px] text-gray-400">Barbeiro: ${atd.barbeiro} • Pagto: ${atd.pagamento || 'Dinheiro'}</div>
+`;
+cEl.appendChild(div);
+});
+}
+document.getElementById('modal-historico').classList.remove('hidden');
+}
 
 function abrirSelecaoBotoes(titulo, itens, callback){
 let modal = document.getElementById('modal-selecao');
@@ -805,12 +846,12 @@ let termoBusca = (document.getElementById('filtro-cliente').value || "").toLower
 let clientesFiltrados = d.cli.filter(c => c.nome.toLowerCase().includes(termoBusca));
 document.getElementById('lista-cli').innerHTML = clientesFiltrados.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum cliente cadastrado.</p>' : clientesFiltrados.map(cli => {
 let qtdAtend = d.a.filter(x => x.c.toLowerCase() === cli.nome.toLowerCase()).length;
-return `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
+return `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center cursor-pointer hover:bg-gray-700/60 transition" onclick="verHistoricoCliente('${cli.nome}')">
 <div>
 <b>👤 ${cli.nome}</b> ${cli.tel ? '• ' + cli.tel : ''}<br>
-<span class="text-gray-400">Atendimentos: ${qtdAtend}</span>
+<span class="text-amber-400 text-[11px]">Atendimentos: ${qtdAtend} (Toque para ver histórico)</span>
 </div>
-<div class="flex gap-1">
+<div class="flex gap-1" onclick="event.stopPropagation()">
 ${cli.tel ? `<button onclick="enviarZap('${cli.tel}', '${cli.nome}')" class="bg-green-600 px-2 py-1 rounded text-[10px]" title="Enviar WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>` : ''}
 <button onclick="excluirCliente(${cli.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
 </div>
