@@ -1,33 +1,3 @@
-<body>
-  <!-- O restante do conteúdo e o design do seu site ficam aqui -->
-
-  <!-- Cole o código JavaScript aqui embaixo -->
-  <script>
-    async function carregarAtendimentos() {
-      try {
-        const url = 'dados.json?t=' + new Date().getTime();
-        const resposta = await fetch(url, {
-          cache: 'no-store',
-          headers: {
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        const dados = await resposta.json();
-        document.getElementById('contador-atendimentos').innerText = dados.total;
-      } catch (erro) {
-        console.error('Erro ao buscar dados atualizados:', erro);
-      }
-    }
-
-    // Executa ao abrir a página
-    carregarAtendimentos();
-
-    // Atualiza sozinho a cada 30 segundos
-    setInterval(carregarAtendimentos, 30000);
-  </script>
-</body>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -43,6 +13,7 @@
 <span><i class="fa-solid fa-scissors"></i><span id="titulo-sistema">Barbearia System</span></span>
 </h1>
 <div class="flex gap-1" id="painel-botoes-topo">
+<button onclick="salvarJsonNoCelular()" class="bg-amber-600 hover:bg-amber-500 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1" title="Salvar JSON Atualizado"><i class="fa-solid fa-cloud-arrow-down"></i> Salvar JSON</button>
 <button onclick="exportarDados()" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]" title="Salvar Backup"><i class="fa-solid fa-download"></i></button>
 <button onclick="importarDados()" class="bg-green-600 text-white px-2 py-1 rounded text-[10px]" title="Restaurar Backup"><i class="fa-solid fa-upload"></i></button>
 </div>
@@ -284,6 +255,9 @@
 
 <!-- CLIENTES -->
 <div id="tab-cli" class="space-y-3 hidden">
+<div id="topo-contador-cli" class="bg-gray-800 p-2.5 rounded text-xs font-bold text-amber-400 flex justify-between items-center border border-gray-700">
+<span>Total de Clientes Cadastrados:</span> <span id="qtd-total-cli" class="text-white">0</span>
+</div>
 <input type="text" id="filtro-cliente" placeholder="🔍 Pesquisar cliente salvo..." oninput="atualizar()" class="w-full bg-gray-800 border border-gray-700 p-2 rounded text-xs text-white">
 <div id="lista-cli" class="space-y-2"><p class="text-xs text-gray-400 text-center">Nenhum cliente cadastrado.</p></div>
 </div>
@@ -302,6 +276,9 @@
 
 <!-- MENSALISTAS -->
 <div id="tab-men" class="space-y-3 hidden">
+<div id="topo-contador-men" class="bg-gray-800 p-2.5 rounded text-xs font-bold text-amber-400 flex justify-between items-center border border-gray-700">
+<span>Total de Mensalistas Cadastrados:</span> <span id="qtd-total-men" class="text-white">0</span>
+</div>
 <button onclick="promptMen()" class="w-full bg-amber-600 p-2.5 rounded text-xs font-bold shadow">+ Novo Mensalista</button>
 <div id="lista-men" class="space-y-2"><p class="text-xs text-gray-400 text-center">Nenhum mensalista.</p></div>
 </div>
@@ -340,6 +317,19 @@ atualizar();
 
 window.addEventListener('beforeunload', salvar);
 window.addEventListener('pagehide', salvar);
+
+function salvarJsonNoCelular(){
+let dadosAtuais = localStorage.getItem(DB_KEY) || JSON.stringify(d);
+let blob = new Blob([dadosAtuais], {type: "application/json;charset=utf-8;"});
+let url = URL.createObjectURL(blob);
+let a = document.createElement('a');
+a.href = url; 
+a.download = "dados.json"; 
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+}
 
 function alternarModoAcesso(){
 if(!modoBarbeiro){
@@ -385,7 +375,6 @@ blocoComissao.classList.add('hidden');
 btnOlho.classList.add('hidden');
 painelTopo.classList.add('hidden');
 document.getElementById('titulo-sistema').innerText = `Barbearia - ${barbeiroLogado}`;
-// Se a aba ativa for exclusiva de admin, redireciona para Início
 let abaAtiva = document.querySelector('#menu-abas button.bg-amber-600');
 if(abaAtiva && ['btn-caixa','btn-perf','btn-barb','btn-srv','btn-desp'].includes(abaAtiva.id)){
 mudarAba('dash');
@@ -812,7 +801,6 @@ abrirSelecaoBotoes("Forma de Pagamento:", [
 let tel = prompt('Telefone do Cliente (opcional):', '');
 verificarCliente(fluxoAtdAtual.cliente, tel);
 
-// Baixar estoque
 produtosComprados.forEach(item => {
 item.prodObj.q -= item.qtd;
 });
@@ -913,7 +901,7 @@ let dataDashInput = document.getElementById('dash-data-filtro');
 if(!dataDashInput.value){
 dataDashInput.value = new Date().toISOString().split('T')[0];
 }
-let dataSelecionadaStr = dataDashInput.value; // AAAA-MM-DD
+let dataSelecionadaStr = dataDashInput.value;
 let dataSelecionadaObj = new Date(dataSelecionadaStr + 'T00:00:00');
 let dataSelecionadaFormatada = dataSelecionadaObj.toLocaleDateString();
 
@@ -1028,7 +1016,6 @@ document.getElementById('d-pag-cartao').innerText = fmtVal('R$ ' + pagCartao.toF
 document.getElementById('d-fat-mes').innerText = fmtVal('R$ ' + fatMes.toFixed(2));
 document.getElementById('d-lucro-mes').innerText = fmtVal('R$ ' + lucroLiquidoMes.toFixed(2));
 
-// Renderizar atendimentos do dia selecionado na aba Início
 let listaAtdDiaContainer = document.getElementById('d-lista-atendimentos-dia');
 let atdsExibirDia = modoBarbeiro ? atendimentosDiaSelArray.filter(x => x.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase()) : atendimentosDiaSelArray;
 
@@ -1167,6 +1154,7 @@ document.getElementById('lista-atd').innerHTML = listaAtendimentosExibir.length 
 
 let termoBusca = (document.getElementById('filtro-cliente').value || "").toLowerCase();
 let clientesFiltrados = d.cli.filter(c => c.nome.toLowerCase().includes(termoBusca));
+document.getElementById('qtd-total-cli').innerText = d.cli.length;
 document.getElementById('lista-cli').innerHTML = clientesFiltrados.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum cliente cadastrado.</p>' : clientesFiltrados.map(cli => {
 let qtdAtend = d.a.filter(x => x.c.toLowerCase() === cli.nome.toLowerCase()).length;
 return `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center cursor-pointer hover:bg-gray-700/60 transition" onclick="verHistoricoCliente('${cli.nome}')">
@@ -1212,6 +1200,7 @@ alertasHtml += `<div class="flex justify-between items-center bg-gray-900 p-2 ro
 });
 document.getElementById('d-alertas').innerHTML = alertasHtml || 'Tudo em dia com os prazos!';
 
+document.getElementById('qtd-total-men').innerText = d.m.length;
 document.getElementById('lista-men').innerHTML = d.m.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum mensalista.</p>' : d.m.map(x => 
 `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
 <span>👤 <b>${x.c}</b><br><span class="text-gray-400">Venc: ${x.v} | R$ ${(x.val||0).toFixed(2)}</span><br><span class="${x.pago?'text-green-400':'text-red-400'}">${x.pago?'Pago':'Pendente'}</span></span>
@@ -1226,4 +1215,3 @@ atualizar();
 </script>
 </body>
 </html>
-
