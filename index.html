@@ -10,31 +10,38 @@
 <body class="bg-gray-900 text-gray-100 font-sans p-3 max-w-md mx-auto pb-16">
 <div class="flex justify-between items-center mb-3">
 <h1 class="text-xl font-bold text-amber-500 flex items-center gap-2">
-<span><i class="fa-solid fa-scissors"></i>Barbearia System</span>
+<span><i class="fa-solid fa-scissors"></i><span id="titulo-sistema">Barbearia System</span></span>
 </h1>
-<div class="flex gap-1">
+<div class="flex gap-1" id="painel-botoes-topo">
 <button onclick="exportarDados()" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]" title="Salvar Backup"><i class="fa-solid fa-download"></i></button>
 <button onclick="importarDados()" class="bg-green-600 text-white px-2 py-1 rounded text-[10px]" title="Restaurar Backup"><i class="fa-solid fa-upload"></i></button>
 </div>
 </div>
 
-<div class="mb-4">
+<!-- BARRA DE CONTROLE DE MODO (ADMIN / BARBEIRO) -->
+<div class="mb-3 bg-gray-800 p-2 rounded border border-gray-700 flex justify-between items-center text-xs">
+<span id="label-modo-atual" class="font-bold text-amber-400">👑 Modo: Administrador (Gerente)</span>
+<button onclick="alternarModoAcesso()" class="bg-gray-700 hover:bg-gray-600 text-white px-2.5 py-1 rounded text-[11px] font-bold">Trocar Modo</button>
+</div>
+
+<div class="mb-4" id="bloco-botao-olho">
 <button onclick="alternarVisibilidadeValores()" id="btn-olho" class="w-full bg-gray-800 hover:bg-gray-700 text-amber-400 border border-gray-700 p-2 rounded text-xs font-bold flex items-center justify-center gap-2 transition">
 <i class="fa-solid fa-eye"></i> <span>Ocultar Valores</span>
 </button>
 </div>
 
-<div class="flex border-b border-gray-700 mb-4 overflow-x-auto pb-2">
+<!-- MENU DE NAVEGAÇÃO -->
+<div class="flex border-b border-gray-700 mb-4 overflow-x-auto pb-2" id="menu-abas">
 <button onclick="mudarAba('dash')" id="btn-dash" class="px-3 py-1.5 bg-amber-600 rounded text-xs font-bold mr-1">Início</button>
 <button onclick="mudarAba('atd')" id="btn-atd" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Atendimentos</button>
 <button onclick="mudarAba('men')" id="btn-men" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Mensalistas</button>
 <button onclick="mudarAba('cli')" id="btn-cli" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Clientes</button>
-<button onclick="mudarAba('caixa')" id="btn-caixa" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Caixa</button>
-<button onclick="mudarAba('perf')" id="btn-perf" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Performance</button>
-<button onclick="mudarAba('barb')" id="btn-barb" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Barbeiros</button>
-<button onclick="mudarAba('srv')" id="btn-srv" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Serviços</button>
 <button onclick="mudarAba('est')" id="btn-est" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1">Estoque</button>
-<button onclick="mudarAba('desp')" id="btn-desp" class="px-3 py-1.5 bg-gray-800 rounded text-xs">Despesas</button>
+<button onclick="mudarAba('caixa')" id="btn-caixa" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1 aba-admin">Caixa</button>
+<button onclick="mudarAba('perf')" id="btn-perf" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1 aba-admin">Performance</button>
+<button onclick="mudarAba('barb')" id="btn-barb" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1 aba-admin">Barbeiros</button>
+<button onclick="mudarAba('srv')" id="btn-srv" class="px-3 py-1.5 bg-gray-800 rounded text-xs mr-1 aba-admin">Serviços</button>
+<button onclick="mudarAba('desp')" id="btn-desp" class="px-3 py-1.5 bg-gray-800 rounded text-xs aba-admin">Despesas</button>
 </div>
 
 <!-- MODAL SELEÇÃO COMUM -->
@@ -43,6 +50,27 @@
 <h3 id="modal-titulo" class="text-sm font-bold text-amber-500 border-b border-gray-700 pb-2">Selecione</h3>
 <div id="modal-conteudo" class="space-y-2 max-h-60 overflow-y-auto"></div>
 <button onclick="fecharModalSelecao()" class="w-full bg-gray-700 hover:bg-gray-600 text-white p-2 rounded text-xs font-bold">Cancelar</button>
+</div>
+</div>
+
+<!-- MODAL MÚLTIPLOS SERVIÇOS E PRODUTOS -->
+<div id="modal-multiplos" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+<div class="bg-gray-800 border border-gray-700 w-full max-w-md rounded-lg p-4 space-y-3 shadow-xl">
+<h3 class="text-sm font-bold text-amber-500 border-b border-gray-700 pb-2"><i class="fa-solid fa-list-check mr-1"></i> Selecionar Serviços e Produtos</h3>
+<div class="space-y-3 max-h-80 overflow-y-auto text-xs pr-1">
+<div>
+<p class="font-bold text-amber-400 mb-1">🛠️ Serviços (Selecione um ou mais):</p>
+<div id="multi-lista-servicos" class="space-y-1 bg-gray-900 p-2 rounded border border-gray-700"></div>
+</div>
+<div>
+<p class="font-bold text-amber-400 mb-1">📦 Produtos do Estoque (Opcional):</p>
+<div id="multi-lista-produtos" class="space-y-1 bg-gray-900 p-2 rounded border border-gray-700"></div>
+</div>
+</div>
+<div class="flex gap-2 pt-2">
+<button onclick="fecharModalMultiplos()" class="w-1/2 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded text-xs font-bold">Cancelar</button>
+<button onclick="confirmarMultiplosServicosProdutos()" class="w-1/2 bg-amber-600 hover:bg-amber-500 text-white p-2 rounded text-xs font-bold">Continuar ➔</button>
+</div>
 </div>
 </div>
 
@@ -70,12 +98,29 @@
 
 <!-- DASHBOARD -->
 <div id="tab-dash" class="space-y-3">
-<div class="grid grid-cols-2 gap-2">
+<div class="grid grid-cols-2 gap-2" id="bloco-cards-admin">
 <div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Faturamento Hoje</p><p id="d-fat-hoje" class="text-lg font-bold text-green-400">R$ 0,00</p></div>
 <div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Atendimentos Hoje</p><p id="d-qtd-hoje" class="text-lg font-bold text-amber-400">0</p></div>
 </div>
 
-<div class="bg-gray-800 p-3 rounded space-y-1">
+<!-- PAINEL EXCLUSIVO DO BARBEIRO (FATURAMENTO TOTAL E LÍQUIDO) -->
+<div id="bloco-card-barbeiro" class="hidden space-y-2">
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Meu Faturamento Hoje</p><p id="barb-fat-hoje" class="text-lg font-bold text-green-400">R$ 0,00</p></div>
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Meus Atendimentos Hoje</p><p id="barb-qtd-hoje" class="text-lg font-bold text-amber-400">0</p></div>
+</div>
+<div class="bg-gray-800 p-3 rounded border border-amber-500/30 flex justify-between items-center">
+<div>
+<p class="text-xs text-gray-400">Líquido a Receber Hoje (<span id="barb-pct-comissao">50</span>%)</p>
+<p id="barb-liquido-hoje" class="text-base font-bold text-blue-400">R$ 0,00</p>
+</div>
+<div class="text-right text-[10px] text-amber-400 font-medium">
+<span>Comissão aplicada</span>
+</div>
+</div>
+</div>
+
+<div class="bg-gray-800 p-3 rounded space-y-1 aba-admin" id="bloco-pagamentos-admin">
 <p class="text-xs font-bold text-amber-500 mb-1"><i class="fa-solid fa-wallet mr-1"></i> Formas de Pagamento (Hoje)</p>
 <div class="grid grid-cols-3 gap-1 text-[11px] text-gray-300">
 <div class="bg-gray-900 p-2 rounded text-center">💵 Dinheiro<br><b id="d-pag-din" class="text-green-400">R$ 0,00</b></div>
@@ -88,12 +133,12 @@
 <button onclick="adicionarMovimentoDataEspecifica()" class="w-full bg-amber-600 hover:bg-amber-500 text-white p-2 rounded text-xs font-bold shadow flex items-center justify-center gap-1"><i class="fa-solid fa-plus-circle"></i> Lançar Atendimento p/ Outro Dia</button>
 </div>
 
-<div class="grid grid-cols-2 gap-2">
+<div class="grid grid-cols-2 gap-2 aba-admin" id="bloco-lucro-admin">
 <div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Faturamento do Mês</p><p id="d-fat-mes" class="text-base font-bold text-green-400">R$ 0,00</p></div>
 <div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Lucro Líquido (Mês)</p><p id="d-lucro-mes" class="text-base font-bold text-blue-400">R$ 0,00</p></div>
 </div>
 
-<div class="bg-gray-800 p-3 rounded">
+<div class="bg-gray-800 p-3 rounded aba-admin" id="bloco-comissao-admin">
 <p class="text-xs font-bold text-amber-500 mb-2">Comissão / Saldo Barbeiros</p>
 <div id="d-barbeiros-resumo" class="text-xs text-gray-300 space-y-1">Nenhum atendimento registrado.</div>
 </div>
@@ -167,7 +212,7 @@
 </div>
 
 <div class="bg-gray-800 p-3 rounded">
-<p class="text-xs font-bold text-amber-500 mb-3"><i class="fa-solid fa-chart-line mr-1"></i> Desempenho por Barbeiro</p>
+<p class="text-xs font-bold text-amber-500 mb-3"><i class="fa-solid fa-chart-line mr-1"></i> Desempenho e Extrato por Barbeiro</p>
 <div id="conteudo-performance" class="space-y-4 text-xs">Carregando performance...</div>
 </div>
 </div>
@@ -217,8 +262,10 @@
 <script>
 const DB_KEY = 'barbearia_system_v18';
 let valoresOcultos = false;
+let modoBarbeiro = false;
+let barbeiroLogado = "";
 
-let dadosPadrao = {"a":[{"id":1788920715065,"barbeiro":"Daniel","c":"Sem nome","tel":"","s":"Corte","valServ":1423,"v":1423,"tipo":"Avulso","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T02:25:15.065Z","t":"08/09/2026"},{"id":1788920538111,"barbeiro":"Daniel","c":"Sem nome","tel":"","s":"Combo","valServ":250,"v":250,"tipo":"Avulso","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T02:22:18.111Z","t":"08/09/2026"},{"id":1788918474422,"barbeiro":"Daniel","c":"Gabriel Braga","tel":"+55 41 98800-2756","s":"Corte","valServ":35,"v":48,"tipo":"Avulso","prodId":1788918406253,"valProd":13,"nomeProd":"Monster ","dataIso":"2026-09-09T01:47:54.422Z","t":"08/09/2026"}],"e":[{"id":1788918406253,"n":"Monster ","q":64,"preco":13}],"m":[{"id":1788918565020,"c":"Wesley smith","v":"2026-09-02","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:19.447Z"},{"id":1788918613864,"c":"Marcos dos Santos","v":"2026-09-03","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:22.900Z"},{"id":1788918677577,"c":"Vinycius Guaringue","v":"2026-09-04","val":99,"pago":true,"dataPagamento":"2026-09-09T02:10:24.331Z"},{"id":1788918763015,"c":"Cido","v":"2026-09-05","val":120,"pago":true,"dataPagamento":"2026-09-09T02:10:26.548Z"},{"id":1788918857111,"c":"Gustavo Souza","v":"2026-09-10","val":149,"pago":false,"dataPagamento":null},{"id":1788918896385,"c":"Jhony Luiz boiaski","v":"2026-09-08","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:31.215Z"},{"id":1788918934153,"c":"William Fabrício","v":"2026-09-15","val":99,"pago":false,"dataPagamento":null},{"id":1788918953745,"c":"Douglas doug","v":"2026-09-02","val":120,"pago":true,"dataPagamento":"2026-09-09T02:10:32.417Z"},{"id":1788919023995,"c":"Antônio Carlos de Souza","v":"2026-09-06","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:34.999Z"},{"id":1788919051389,"c":"Marlon Bar","v":"2026-09-10","val":99,"pago":true,"dataPagamento":"2026-09-09T02:10:36.700Z"},{"id":1788919116003,"c":"Vitor Leonardo","v":"2026-09-13","val":149,"pago":false,"dataPagamento":null},{"id":1788919187914,"c":"Bryon César dave Simão","v":"2026-09-02","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:41.111Z"},{"id":1788919220931,"c":"Heseron Wesley","v":"2026-09-10","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:44.488Z"},{"id":1788919248490,"c":"John Lennon","v":"2026-09-07","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:46.737Z"},{"id":1788919266790,"c":"Felipe + Gustavo","v":"2026-09-02","val":120,"pago":true,"dataPagamento":"2026-09-09T02:10:49.223Z"},{"id":1788919305309,"c":"Deivid juan","v":"2026-09-10","val":99,"pago":true,"dataPagamento":"2026-09-09T02:10:50.524Z"},{"id":1788919337240,"c":"Pedrao","v":"2026-09-10","val":59,"pago":false,"dataPagamento":null},{"id":1788919413029,"c":"André Luiz  Oliveira","v":"2026-09-27","val":59,"pago":false,"dataPagamento":null},{"id":1788919468117,"c":"Gustavo para","v":"2026-09-15","val":99,"pago":false,"dataPagamento":null},{"id":1788919499006,"c":"Pintado","v":"2026-09-31 ","val":99,"pago":false,"dataPagamento":null},{"id":1788919610127,"c":"Marcos Barbosa de Oliveira","v":"2026-09-08","val":99,"pago":true,"dataPagamento":"2026-09-09T02:10:53.421Z"}],"b":[{"nome":"Daniel","foto":""}],"servicos":[{"nome":"Corte","preco":35},{"nome":"Barba","preco":35},{"nome":"Corte + Barba","preco":70},{"nome":"Combo","preco":75},{"nome":"Sobrancelha ","preco":15}],"cli":[{"id":1788918240320,"nome":"Gabriel","tel":"+55 41 98800-2756"},{"id":1788918388222,"nome":"Gabriel Braga","tel":"+55 41 98800-2756"},{"id":1788918565020,"nome":"Wesley smith","tel":""},{"id":1788918613864,"nome":"Marcos dos Santos","tel":""},{"id":1788918677577,"nome":"Vinycius","tel":""},{"id":1788918695405,"nome":"Vinycius Guaringue","tel":""},{"id":1788918763015,"nome":"Cido","tel":""},{"id":1788918857111,"nome":"Gustavo Souza","tel":""},{"id":1788918896385,"nome":"Jhony Luiz boiaski","tel":""},{"id":1788918934153,"nome":"William Fabrício","tel":""},{"id":1788918953745,"nome":"Douglas doug","tel":""},{"id":1788919023995,"nome":"Antônio Carlos de Souza","tel":""},{"id":1788919051389,"nome":"Marlon Bar","tel":""},{"id":1788919116003,"nome":"Vitor Leonardo","tel":""},{"id":1788919187914,"nome":"Bryon César dave Simão","tel":""},{"id":1788919220931,"nome":"Heseron Wesley","tel":""},{"id":1788919248490,"nome":"John Lennon","tel":""},{"id":1788919266790,"nome":"Felipe + Gustavo","tel":""},{"id":1788919305309,"nome":"Deivid juan","tel":""},{"id":1788919337240,"nome":"Pedrao","tel":""},{"id":1788919413029,"nome":"André Oliveira","tel":""},{"id":1788919425238,"nome":"André Luiz  Oliveira","tel":""},{"id":1788919468117,"nome":"Gustavo para","tel":""},{"id":1788919499006,"nome":"Pintado","tel":""},{"id":1788919610127,"nome":"Marcos Barbosa de Oliveira","tel":""},{"id":1788920538111,"nome":"Sem nome","tel":""}]};
+let dadosPadrao = {"a":[{"id":1789092081630,"barbeiro":"Daniel","c":"Jarilson Luiz","tel":"+55 41 99802-4832","s":"Corte + Barba","valServ":70,"v":70,"tipo":"Avulso","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-11T02:01:21.630Z","t":"10/09/2026"},{"id":1789091995887,"barbeiro":"Daniel","c":"Doeu-me","tel":"+55 41 99652-3078","s":"Corte","valServ":35,"v":35,"tipo":"Avulso","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-11T01:59:55.887Z","t":"10/09/2026"},{"id":1789091937058,"barbeiro":"Daniel","c":"Alziro","tel":"","s":"Corte","valServ":25,"v":25,"tipo":"Avulso","pagamento":"Dinheiro","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-11T01:58:57.058Z","t":"10/09/2026"},{"id":1788993341877,"barbeiro":"Daniel","c":"Filho Jhony mensal","tel":"","s":"Corte","valServ":35,"v":40,"tipo":"Avulso","pagamento":"Dinheiro","prodId":1788993227313,"valProd":5,"nomeProd":"Refrigerante ","dataIso":"2026-09-09T22:35:41.877Z","t":"09/09/2026"},{"id":1788993182053,"barbeiro":"Daniel","c":"Gabriel padilha","tel":"+55 41 98415-5594","s":"Corte","valServ":35,"v":35,"tipo":"Avulso","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T22:33:02.053Z","t":"09/09/2026"},{"id":1788993136136,"barbeiro":"Daniel","c":"Eduardo baroni","tel":"+554199892-6988","s":"Corte + Barba","valServ":70,"v":70,"tipo":"Avulso","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T22:32:16.136Z","t":"09/09/2026"},{"id":1788985664598,"barbeiro":"Daniel","c":"Wesley smith","tel":"","s":"Sobrancelha ","valServ":10,"v":10,"tipo":"Avulso","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T20:27:44.598Z","t":"09/09/2026"},{"id":1788982352094,"barbeiro":"Daniel","c":"Vitor Alexandre Freitas Barbosa","tel":"","s":"Corte","valServ":35,"v":35,"tipo":"Avulso","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T19:32:32.094Z","t":"09/09/2026"},{"id":1788982145150,"barbeiro":"Daniel","c":"Pedrao","tel":"+55 41 99644-1363","s":"Sobrancelha ","valServ":0,"v":20,"tipo":"Mensalista","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T19:29:05.150Z","t":"09/09/2026"},{"id":1788981733901,"barbeiro":"Daniel","c":"Jhonatan Vargas","tel":"","s":"Monster","valServ":1,"v":14,"tipo":"Avulso","pagamento":"PIX","prodId":1788918406253,"valProd":13,"nomeProd":"Monster ","dataIso":"2026-09-09T19:22:13.901Z","t":"09/09/2026"},{"id":1788981228179,"barbeiro":"Daniel","c":"Cássio Farias","tel":"41988883011","s":"Corte","valServ":35,"v":35,"tipo":"Avulso","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T19:13:48.179Z","t":"09/09/2026"},{"id":1788966528736,"barbeiro":"Daniel","c":"Carlos Roberto","tel":"+55 41 99636-3508","s":"Corte","valServ":35,"v":35,"tipo":"Avulso","pagamento":"PIX","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T15:08:48.736Z","t":"09/09/2026"},{"id":1788920715065,"barbeiro":"Daniel","c":"Sem nome","tel":"","s":"Corte","valServ":1423,"v":1423,"tipo":"Avulso","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T02:25:15.065Z","t":"08/09/2026","pagamento":"PIX"},{"id":1788920538111,"barbeiro":"Daniel","c":"Sem nome","tel":"","s":"Combo","valServ":250,"v":250,"tipo":"Avulso","prodId":null,"valProd":0,"nomeProd":"","dataIso":"2026-09-09T02:22:18.111Z","t":"08/09/2026","pagamento":"PIX"},{"id":1788918474422,"barbeiro":"Daniel","c":"Gabriel Braga","tel":"+55 41 98800-2756","s":"Corte","valServ":35,"v":48,"tipo":"Avulso","prodId":1788918406253,"valProd":13,"nomeProd":"Monster ","dataIso":"2026-09-09T01:47:54.422Z","t":"08/09/2026","pagamento":"PIX"}],"e":[{"id":1788918406253,"n":"Monster ","q":63,"preco":13},{"id":1788993227313,"n":"Refrigerante ","q":19,"preco":5},{"id":1788993303466,"n":"Pomada Andercut ","q":6,"preco":35}],"m":[{"id":1788918565020,"c":"Wesley smith","v":"2026-09-02","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:19.447Z"},{"id":1788918613864,"c":"Marcos dos Santos","v":"2026-09-03","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:22.900Z"},{"id":1788918677577,"c":"Vinycius Guaringue","v":"2026-09-04","val":99,"pago":true,"dataPagamento":"2026-09-09T02:10:24.331Z"},{"id":1788918763015,"c":"Cido","v":"2026-09-05","val":120,"pago":true,"dataPagamento":"2026-09-09T02:10:26.548Z"},{"id":1788918857111,"c":"Gustavo Souza","v":"2026-09-10","val":149,"pago":false,"dataPagamento":null},{"id":1788918896385,"c":"Jhony Luiz boiaski","v":"2026-09-08","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:31.215Z"},{"id":1788918934153,"c":"William Fabrício","v":"2026-09-15","val":99,"pago":false,"dataPagamento":null},{"id":1788918953745,"c":"Douglas doug","v":"2026-09-02","val":120,"pago":true,"dataPagamento":"2026-09-09T02:10:32.417Z"},{"id":1788919023995,"c":"Antônio Carlos de Souza","v":"2026-09-06","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:34.999Z"},{"id":1788919051389,"c":"Marlon Bar","v":"2026-09-10","val":99,"pago":true,"dataPagamento":"2026-09-09T02:10:36.700Z"},{"id":1788919116003,"c":"Vitor Leonardo","v":"2026-09-13","val":149,"pago":false,"dataPagamento":null},{"id":1788919187914,"c":"Bryon César dave Simão","v":"2026-09-02","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:41.111Z"},{"id":1788919220931,"c":"Heseron Wesley","v":"2026-09-10","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:44.488Z"},{"id":1788919248490,"c":"John Lennon","v":"2026-09-07","val":149,"pago":true,"dataPagamento":"2026-09-09T02:10:46.737Z"},{"id":1788919266790,"c":"Felipe + Gustavo","v":"2026-09-02","val":120,"pago":true,"dataPagamento":"2026-09-09T02:10:49.223Z"},{"id":1788919305309,"c":"Deivid juan","v":"2026-09-10","val":99,"pago":true,"dataPagamento":"2026-09-09T02:10:50.524Z"},{"id":1788919337240,"c":"Pedrao","v":"2026-09-10","val":59,"pago":true,"dataPagamento":"2026-09-09T19:22:49.990Z"},{"id":1788919413029,"c":"André Luiz  Oliveira","v":"2026-09-27","val":59,"pago":false,"dataPagamento":null},{"id":1788919468117,"c":"Gustavo para","v":"2026-09-15","val":99,"pago":false,"dataPagamento":null},{"id":1788919499006,"c":"Pintado","v":"2026-09-31 ","val":99,"pago":false,"dataPagamento":null},{"id":1788919610127,"c":"Marcos Barbosa de Oliveira","v":"2026-09-08","val":99,"pago":true,"dataPagamento":"2026-09-09T02:10:53.421Z"}],"b":[{"nome":"Daniel","foto":"","comissao":50}],"servicos":[{"nome":"Corte","preco":35},{"nome":"Barba","preco":35},{"nome":"Corte + Barba","preco":70},{"nome":"Combo","preco":75},{"nome":"Sobrancelha ","preco":15}],"cli":[{"id":1788918388222,"nome":"Gabriel Braga","tel":"+55 41 98800-2756","ultimoCorte":"2026-09-09T04:21:25.682Z"},{"id":1788918565020,"nome":"Wesley smith","tel":"","ultimoCorte":"2026-09-09T20:27:44.598Z"},{"id":1788918613864,"nome":"Marcos dos Santos","tel":""},{"id":1788918677577,"nome":"Vinycius","tel":""},{"id":1788918695405,"nome":"Vinycius Guaringue","tel":""},{"id":1788918763015,"nome":"Cido","tel":""},{"id":1788918857111,"nome":"Gustavo Souza","tel":""},{"id":1788918896385,"nome":"Jhony Luiz boiaski","tel":""},{"id":1788918934153,"nome":"William Fabrício","tel":""},{"id":1788918953745,"nome":"Douglas doug","tel":""},{"id":1788919023995,"nome":"Antônio Carlos de Souza","tel":""},{"id":1788919051389,"nome":"Marlon Bar","tel":""},{"id":1788919116003,"nome":"Vitor Leonardo","tel":""},{"id":1788919187914,"nome":"Bryon César dave Simão","tel":""},{"id":1788919220931,"nome":"Heseron Wesley","tel":""},{"id":1788919248490,"nome":"John Lennon","tel":""},{"id":1788919266790,"nome":"Felipe + Gustavo","tel":""},{"id":1788919305309,"nome":"Deivid juan","tel":""},{"id":1788919337240,"nome":"Pedrao","tel":"+55 41 99644-1363","ultimoCorte":"2026-09-09T19:29:40.827Z"},{"id":1788919413029,"nome":"André Oliveira","tel":""},{"id":1788919425238,"nome":"André Luiz  Oliveira","tel":""},{"id":1788919468117,"nome":"Gustavo para","tel":""},{"id":1788919499006,"nome":"Pintado","tel":""},{"id":1788919610127,"nome":"Marcos Barbosa de Oliveira","tel":""},{"id":1788920538111,"nome":"Sem nome","tel":"","ultimoCorte":"2026-09-09T04:21:19.202Z"},{"id":1788966528736,"nome":"Carlos Roberto","tel":"+55 41 99636-3508","ultimoCorte":"2026-09-09T15:08:48.736Z"},{"id":1788981228179,"nome":"Cássio Farias","tel":"41988883011","ultimoCorte":"2026-09-09T19:13:48.179Z"},{"id":1788981733901,"nome":"Jhonatan Vargas","tel":"","ultimoCorte":"2026-09-09T19:22:34.437Z"},{"id":1788982352094,"nome":"Vitor Alexandre Freitas Barbosa","tel":"","ultimoCorte":"2026-09-09T19:32:32.094Z"},{"id":1788993136136,"nome":"Eduardo baroni","tel":"+554199892-6988","ultimoCorte":"2026-09-09T22:32:16.136Z"},{"id":1788993182053,"nome":"Gabriel padilha","tel":"+55 41 98415-5594","ultimoCorte":"2026-09-09T22:33:02.053Z"},{"id":1788993341877,"nome":"Filho Jhony mensal","tel":"","ultimoCorte":"2026-09-09T22:35:41.877Z"},{"id":1789091937058,"nome":"Alziro","tel":"","ultimoCorte":"2026-09-11T01:58:57.058Z"},{"id":1789091995887,"nome":"Doeu-me","tel":"+55 41 99652-3078","ultimoCorte":"2026-09-11T01:59:55.887Z"},{"id":1789092081630,"nome":"Jarilson Luiz","tel":"+55 41 99802-4832","ultimoCorte":"2026-09-11T02:01:21.630Z"}],"desp":[],"caixaTroco":{},"taxas":{"deb":1.5,"cred":3.5}};
 
 let d = dadosPadrao;
 let dataInicioFiltro = "";
@@ -227,6 +274,7 @@ let filtrosBarbeiroData = {};
 
 let itensCacheBuscaModal = [];
 let callbackCacheBuscaModal = null;
+let fluxoAtdAtual = null;
 
 try {
 let salvo = localStorage.getItem(DB_KEY);
@@ -245,6 +293,67 @@ atualizar();
 
 window.addEventListener('beforeunload', salvar);
 window.addEventListener('pagehide', salvar);
+
+function alternarModoAcesso(){
+if(!modoBarbeiro){
+if(d.b.length === 0){ alert("Cadastre um barbeiro primeiro."); return; }
+let itensBarb = d.b.map(b => ({ label: b.nome, valor: b.nome }));
+abrirSelecaoBotoes("Entrar como Barbeiro:", itensBarb, (nomeBarb) => {
+modoBarbeiro = true;
+barbeiroLogado = nomeBarb;
+aplicarModoVisual();
+});
+} else {
+let senha = prompt("Digite a senha de Administrador:");
+if(senha === "8412"){
+modoBarbeiro = false;
+barbeiroLogado = "";
+aplicarModoVisual();
+alert("Modo Administrador ativado!");
+} else {
+alert("Senha incorreta.");
+}
+}
+}
+
+function aplicarModoVisual(){
+let lbl = document.getElementById('label-modo-atual');
+let adminElements = document.querySelectorAll('.aba-admin');
+let blocoCards = document.getElementById('bloco-cards-admin');
+let blocoCardBarbeiro = document.getElementById('bloco-card-barbeiro');
+let blocoPag = document.getElementById('bloco-pagamentos-admin');
+let blocoLucro = document.getElementById('bloco-lucro-admin');
+let blocoComissao = document.getElementById('bloco-comissao-admin');
+let btnOlho = document.getElementById('bloco-botao-olho');
+let painelTopo = document.getElementById('painel-botoes-topo');
+
+if(modoBarbeiro){
+lbl.innerHTML = `✂️ Modo: Barbeiro (${barbeiroLogado})`;
+adminElements.forEach(el => el.classList.add('hidden'));
+blocoCards.classList.add('hidden');
+blocoCardBarbeiro.classList.remove('hidden');
+blocoPag.classList.add('hidden');
+blocoLucro.classList.add('hidden');
+blocoComissao.classList.add('hidden');
+btnOlho.classList.add('hidden');
+painelTopo.classList.add('hidden');
+document.getElementById('titulo-sistema').innerText = `Barbearia - ${barbeiroLogado}`;
+mudarAba('dash');
+} else {
+lbl.innerHTML = `👑 Modo: Administrador (Gerente)`;
+adminElements.forEach(el => el.classList.remove('hidden'));
+blocoCards.classList.remove('hidden');
+blocoCardBarbeiro.classList.add('hidden');
+blocoPag.classList.remove('hidden');
+blocoLucro.classList.remove('hidden');
+blocoComissao.classList.remove('hidden');
+btnOlho.classList.remove('hidden');
+painelTopo.classList.remove('hidden');
+document.getElementById('titulo-sistema').innerText = `Barbearia System`;
+mudarAba('dash');
+}
+atualizar();
+}
 
 function alternarVisibilidadeValores(){
 valoresOcultos = !valoresOcultos;
@@ -291,6 +400,7 @@ atualizar();
 
 function fecharModalSelecao(){ document.getElementById('modal-selecao').classList.add('hidden'); }
 function fecharModalHistorico(){ document.getElementById('modal-historico').classList.add('hidden'); }
+function fecharModalMultiplos(){ document.getElementById('modal-multiplos').classList.add('hidden'); }
 
 function verHistoricoCliente(nomeCliente){
 let tEl = document.getElementById('hist-titulo');
@@ -310,8 +420,8 @@ div.innerHTML = `
 <span><i class="fa-solid fa-calendar mr-1"></i> ${atd.t || 'Data não informada'}</span>
 <span class="text-green-400">${fmtVal('R$ ' + atd.v.toFixed(2))}</span>
 </div>
-<div class="text-gray-300"><b>Serviço:</b> ${atd.s}</div>
-${atd.nomeProd ? `<div class="text-gray-300"><b>Produto:</b> ${atd.nomeProd}</div>` : ''}
+<div class="text-gray-300"><b>Serviço(s):</b> ${atd.s}</div>
+${atd.nomeProd ? `<div class="text-gray-300"><b>Produto(s):</b> ${atd.nomeProd}</div>` : ''}
 <div class="text-[10px] text-gray-400">Barbeiro: ${atd.barbeiro} • Pagto: ${atd.pagamento || 'Dinheiro'}</div>
 `;
 cEl.appendChild(div);
@@ -499,55 +609,33 @@ if(isNaN(dataObj.getTime())) { alert("Data inválida."); return; }
 
 if(d.b.length === 0){ alert('Cadastre um barbeiro primeiro.'); mudarAba('barb'); return; }
 
-let itensBarb = d.b.map(b => ({ label: b.nome, valor: b.nome }));
-abrirSelecaoBotoes("Selecione o Barbeiro:", itensBarb, (barbeiro) => {
+let executarLancamento = (barbeiro) => {
 let clienteEscolhido = prompt("Nome do Cliente:", "Cliente Balcão");
 if(!clienteEscolhido) return;
 
-let itensServ = d.servicos.map(s => ({ label: `${s.nome} (R$ ${s.preco.toFixed(2)})`, valor: s }));
-itensServ.unshift({ label: '➕ Outro Serviço Personalizado', valor: { custom: true } });
+abrirModalMultiplosServicosProdutos(barbeiro, 'Avulso', clienteEscolhido, dataObj);
+};
 
-abrirSelecaoBotoes("Selecione o Serviço:", itensServ, (servObj) => {
-let servico = "", valorServico = 0;
-if(servObj.custom){
-servico = prompt('Nome do serviço personalizado:'); if(!servico) return;
-valorServico = parseFloat(prompt('Valor (R$):', '40')) || 0;
+if(modoBarbeiro){
+executarLancamento(barbeiroLogado);
 } else {
-servico = servObj.nome;
-valorServico = parseFloat(prompt('Confirmar valor (R$):', servObj.preco)) || servObj.preco;
+let itensBarb = d.b.map(b => ({ label: b.nome, valor: b.nome }));
+abrirSelecaoBotoes("Selecione o Barbeiro:", itensBarb, executarLancamento);
 }
-
-abrirSelecaoBotoes("Forma de Pagamento:", [
-{ label: '💵 Dinheiro', valor: 'Dinheiro' },
-{ label: '📱 PIX', valor: 'PIX' },
-{ label: '💳 Cartão', valor: 'Cartão' }
-], (pagamento) => {
-let tel = prompt('Telefone do Cliente (opcional):', '');
-verificarCliente(clienteEscolhido, tel);
-
-d.a.unshift({
-id: Date.now(), barbeiro, c: clienteEscolhido.trim(), tel, s: servico, valServ: valorServico,
-v: valorServico, tipo: 'Avulso', pagamento, prodId: null, valProd: 0, nomeProd: '',
-dataIso: dataObj.toISOString(), t: dataObj.toLocaleDateString()
-});
-salvar();
-alert("Atendimento lançado com sucesso!");
-});
-});
-});
 }
 
 function promptAtd(){
 if(d.b.length === 0){ alert('Cadastre um barbeiro primeiro.'); mudarAba('barb'); return; }
 
-let itensBarb = d.b.map(b => ({ label: b.nome, valor: b.nome }));
-abrirSelecaoBotoes("Selecione o Barbeiro:", itensBarb, (barbeiro) => {
+let executarFluxoBarbeiro = (barbeiro) => {
 let itensTipo = [{ label: '👤 Cliente Avulso', valor: 'Avulso' }, { label: '⭐ Cliente Mensalista', valor: 'Mensalista' }];
 abrirSelecaoBotoes("Tipo de Atendimento:", itensTipo, (tipo) => {
 if(tipo === 'Mensalista'){
 if(d.m.length === 0){ alert('Sem mensalistas cadastrados.'); return; }
 let itensMen = d.m.map(m => ({ label: m.c, valor: m.c }));
-abrirSelecaoComBusca("Selecione o Mensalista:", itensMen, (cliente) => { continuarFluxoPagamento(barbeiro, 'Mensalista', cliente, 'Plano Mensal', 0, null, 0, ""); });
+abrirSelecaoComBusca("Selecione o Mensalista:", itensMen, (cliente) => { 
+finalizarAtendimentoDireto(barbeiro, 'Mensalista', cliente, 'Plano Mensal', 0, null, 0, "");
+});
 } else {
 let mensalistasNomesSet = new Set(d.m.map(m => m.c.toLowerCase()));
 let listaAvulsosNomes = [...new Set(d.cli.filter(c => !mensalistasNomesSet.has(c.nome.toLowerCase())).map(c => c.nome))];
@@ -556,44 +644,112 @@ itensCli.unshift({ label: '➕ Digitar Novo Cliente', valor: '__novo__' });
 
 abrirSelecaoComBusca("Selecione o Cliente:", itensCli, (cliente) => {
 if(cliente === '__novo__'){ cliente = prompt("Nome do Novo Cliente:"); if(!cliente) return; }
-let itensServ = d.servicos.map(s => ({ label: `${s.nome} (R$ ${s.preco.toFixed(2)})`, valor: s }));
-itensServ.unshift({ label: '➕ Outro Serviço', valor: { custom: true } });
-abrirSelecaoBotoes("Selecione o Serviço:", itensServ, (servObj) => {
-let servico = "", valServ = 0;
-if(servObj.custom){
-servico = prompt('Nome do serviço:'); if(!servico) return;
-valServ = parseFloat(prompt('Valor (R$):', '40')) || 0;
-perguntaEstoqueEFinaliza(barbeiro, 'Avulso', cliente, servico, valServ);
-} else {
-valServ = parseFloat(prompt('Confirmar valor (R$):', servObj.preco)) || servObj.preco;
-perguntaEstoqueEFinaliza(barbeiro, 'Avulso', cliente, servObj.nome, valServ);
-}
-});
+abrirModalMultiplosServicosProdutos(barbeiro, 'Avulso', cliente, new Date());
 });
 }
 });
-});
-}
+};
 
-function perguntaEstoqueEFinaliza(barbeiro, tipo, cliente, servico, valServ){
-let vTotal = valServ;
-let prodId = null, valProd = 0, nomeProd = "";
-if(d.e.length > 0){
-let itensEst = d.e.map(prod => ({ label: `${prod.n} (Estoque: ${prod.q} | R$ ${prod.preco.toFixed(2)})`, valor: prod }));
-itensEst.unshift({ label: '❌ Nenhum Produto', valor: null });
-abrirSelecaoBotoes("Deseja incluir produto?", itensEst, (prod) => {
-if(prod){
-if(prod.q > 0){ prodId = prod.id; valProd = prod.preco; nomeProd = prod.n; vTotal += valProd; prod.q -= 1; }
-else { alert('Produto sem estoque!'); }
-}
-continuarFluxoPagamento(barbeiro, tipo, cliente, servico, vTotal, prodId, valProd, nomeProd);
-});
+if(modoBarbeiro){
+executarFluxoBarbeiro(barbeiroLogado);
 } else {
-continuarFluxoPagamento(barbeiro, tipo, cliente, servico, vTotal, prodId, valProd, nomeProd);
+let itensBarb = d.b.map(b => ({ label: b.nome, valor: b.nome }));
+abrirSelecaoBotoes("Selecione o Barbeiro:", itensBarb, executarFluxoBarbeiro);
 }
 }
 
-function continuarFluxoPagamento(barbeiro, tipo, cliente, servico, vTotal, prodId, valProd, nomeProd){
+function abrirModalMultiplosServicosProdutos(barbeiro, tipo, cliente, dataObj){
+fluxoAtdAtual = { barbeiro, tipo, cliente, dataObj };
+
+let sContainer = document.getElementById('multi-lista-servicos');
+sContainer.innerHTML = "";
+if(d.servicos.length === 0){
+sContainer.innerHTML = '<span class="text-gray-400">Nenhum serviço cadastrado.</span>';
+} else {
+d.servicos.forEach((s, idx) => {
+let div = document.createElement('label');
+div.className = "flex items-center justify-between text-white bg-gray-800 p-1.5 rounded cursor-pointer hover:bg-gray-700";
+div.innerHTML = `<span class="flex items-center gap-2"><input type="checkbox" name="multi-serv" value="${idx}" class="w-4 h-4 accent-amber-600"> ${s.nome}</span> <span class="text-green-400">R$ ${s.preco.toFixed(2)}</span>`;
+sContainer.appendChild(div);
+});
+}
+
+let pContainer = document.getElementById('multi-lista-produtos');
+pContainer.innerHTML = "";
+if(d.e.length === 0){
+pContainer.innerHTML = '<span class="text-gray-400">Nenhum produto no estoque.</span>';
+} else {
+d.e.forEach((p, idx) => {
+let div = document.createElement('div');
+div.className = "flex items-center justify-between text-white bg-gray-800 p-1.5 rounded";
+div.innerHTML = `<span><b>${p.n}</b> (Est: ${p.q} | R$ ${p.preco.toFixed(2)})</span> <input type="number" min="0" max="${p.q}" value="0" data-prod-idx="${idx}" class="w-14 bg-gray-900 border border-gray-700 text-center text-white rounded p-0.5 text-xs">`;
+pContainer.appendChild(div);
+});
+}
+
+document.getElementById('modal-multiplos').classList.remove('hidden');
+}
+
+function confirmarMultiplosServicosProdutos(){
+let checks = document.querySelectorAll('input[name="multi-serv"]:checked');
+if(checks.length === 0){ alert("Selecione pelo menos um serviço."); return; }
+
+let servicosSelecionados = [];
+let valServicosTotal = 0;
+checks.forEach(chk => {
+let sObj = d.servicos[parseInt(chk.value)];
+servicosSelecionados.push(sObj.nome);
+valServicosTotal += sObj.preco;
+});
+let nomeServicosStr = servicosSelecionados.join(' + ');
+
+let inputsProd = document.querySelectorAll('input[data-prod-idx]');
+let nomeProdArr = [];
+let valProdTotal = 0;
+let produtosComprados = [];
+
+inputsProd.forEach(inp => {
+let qtd = parseInt(inp.value) || 0;
+if(qtd > 0){
+let pIdx = parseInt(inp.getAttribute('data-prod-idx'));
+let prodObj = d.e[pIdx];
+if(qtd > prodObj.q){ alert(`Estoque insuficiente para ${prodObj.n}!`); return; }
+produtosComprados.push({ prodObj, qtd });
+nomeProdArr.push(`${prodObj.n} (x${qtd})`);
+valProdTotal += prodObj.preco * qtd;
+}
+});
+
+let nomeProdutosStr = nomeProdArr.join(', ');
+let vTotal = valServicosTotal + valProdTotal;
+
+fecharModalMultiplos();
+
+abrirSelecaoBotoes("Forma de Pagamento:", [
+{ label: '💵 Dinheiro', valor: 'Dinheiro' },
+{ label: '📱 PIX', valor: 'PIX' },
+{ label: '💳 Cartão', valor: 'Cartão' }
+], (pagamento) => {
+let tel = prompt('Telefone do Cliente (opcional):', '');
+verificarCliente(fluxoAtdAtual.cliente, tel);
+
+// Baixar estoque
+produtosComprados.forEach(item => {
+item.prodObj.q -= item.qtd;
+});
+
+d.a.unshift({
+id: Date.now(), barbeiro: fluxoAtdAtual.barbeiro, c: fluxoAtdAtual.cliente.trim(), tel, s: nomeServicosStr, valServ: valServicosTotal,
+v: vTotal, tipo: fluxoAtdAtual.tipo, pagamento, prodId: produtosComprados.length > 0 ? produtosComprados[0].prodObj.id : null, 
+valProd: valProdTotal, nomeProd: nomeProdutosStr,
+dataIso: fluxoAtdAtual.dataObj.toISOString(), t: fluxoAtdAtual.dataObj.toLocaleDateString()
+});
+salvar();
+alert("Atendimento lançado com sucesso!");
+});
+}
+
+function finalizarAtendimentoDireto(barbeiro, tipo, cliente, servico, vTotal, prodId, valProd, nomeProd){
 abrirSelecaoBotoes("Forma de Pagamento:", [
 { label: '💵 Dinheiro', valor: 'Dinheiro' },
 { label: '📱 PIX', valor: 'PIX' },
@@ -616,7 +772,7 @@ function editarAtd(id){
 let item = d.a.find(x => x.id === id);
 if(!item) return;
 let nc = prompt('Editar Nome do Cliente:', item.c); if(!nc) return;
-let ns = prompt('Editar Serviço:', item.s); if(!ns) return;
+let ns = prompt('Editar Serviço(s):', item.s); if(!ns) return;
 let nv = parseFloat(prompt('Editar Valor Total (R$):', item.v)); if(isNaN(nv)) return;
 
 abrirSelecaoBotoes("Editar Forma de Pagamento:", [
@@ -660,10 +816,17 @@ if(m){ m.pago = !m.pago; m.dataPagamento = m.pago ? new Date().toISOString() : n
 function excluirMensalista(id){ if(confirm("Excluir mensalista?")){ d.m = d.m.filter(x => x.id !== id); salvar(); } }
 
 function enviarZap(tel, nome){
-if(!tel){ alert("Cliente sem telefone cadastrado."); return; }
-let limpo = tel.replace(/\D/g, '');
+let limpo = tel ? tel.replace(/\D/g, '') : '';
 let msg = encodeURIComponent(`Olá ${nome}, tudo bem? Notamos que já passou da hora de dar aquela aparada no visual! Vamos agendar seu horário aqui na barbearia?`);
+if(limpo) {
 window.open(`https://wa.me/55${limpo}?text=${msg}`, '_blank');
+} else {
+let t = prompt("Número de WhatsApp do cliente (ex: 41999999999):");
+if(t) {
+let tLimpo = t.replace(/\D/g, '');
+window.open(`https://wa.me/55${tLimpo}?text=${msg}`, '_blank');
+}
+}
 }
 
 function atualizar(){
@@ -689,6 +852,10 @@ if(dataFimFiltro && dataFimFiltro !== dataInicioFiltro) txtF += ` até ${dataFim
 textoFiltro.innerHTML = `🔍 Filtrando período: <b>${txtF}</b>`;
 } else { painelFiltro.classList.add('hidden'); }
 
+let barbFatHoje = 0;
+let barbQtdHoje = 0;
+let barbLiquidoHoje = 0;
+
 d.a.forEach(x => {
 let dataReg = x.dataIso ? new Date(x.dataIso) : new Date();
 let valTotal = x.v || 0;
@@ -698,6 +865,17 @@ fatHoje += valTotal; qtdHoje++;
 if(x.pagamento === 'Dinheiro') pagDin += valTotal;
 else if(x.pagamento === 'PIX') pagPix += valTotal;
 else if(x.pagamento === 'Cartão') pagCartao += valTotal;
+
+if(modoBarbeiro && x.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase()){
+barbFatHoje += valTotal;
+barbQtdHoje++;
+
+let barbObj = d.b.find(b => b.nome.toLowerCase() === barbeiroLogado.toLowerCase());
+let pctComissao = barbObj && barbObj.comissao !== undefined ? barbObj.comissao : 50;
+let parteServico = x.valServ !== undefined ? x.valServ : (valTotal - (x.valProd || 0));
+let comissaoServ = (x.tipo === 'Mensalista') ? 0 : (parteServico * (pctComissao / 100));
+barbLiquidoHoje += comissaoServ;
+}
 }
 
 if(dataReg.getMonth() === mesAtual && dataReg.getFullYear() === anoAtual){
@@ -728,6 +906,9 @@ atendMensalista.forEach(atd => {
 let dataReg = new Date(atd.dataIso);
 if(dataReg.getMonth() === mesAtual && dataReg.getFullYear() === anoAtual){
 if(comissaoBarbeiro[atd.barbeiro] !== undefined){ comissaoBarbeiro[atd.barbeiro] += valorPorAtendimento; }
+if(modoBarbeiro && atd.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase() && dataReg.toLocaleDateString() === hojeStr){
+barbLiquidoHoje += valorPorAtendimento;
+}
 }
 });
 }
@@ -742,6 +923,13 @@ let lucroLiquidoMes = fatMes - totalDespesasMes;
 
 document.getElementById('d-fat-hoje').innerText = fmtVal('R$ ' + fatHoje.toFixed(2));
 document.getElementById('d-qtd-hoje').innerText = qtdHoje;
+
+document.getElementById('barb-fat-hoje').innerText = 'R$ ' + barbFatHoje.toFixed(2);
+document.getElementById('barb-qtd-hoje').innerText = barbQtdHoje;
+document.getElementById('barb-liquido-hoje').innerText = 'R$ ' + barbLiquidoHoje.toFixed(2);
+let barbObjCorrente = d.b.find(b => b.nome.toLowerCase() === barbeiroLogado.toLowerCase());
+document.getElementById('barb-pct-comissao').innerText = barbObjCorrente ? barbObjCorrente.comissao : 50;
+
 document.getElementById('d-pag-din').innerText = fmtVal('R$ ' + pagDin.toFixed(2));
 document.getElementById('d-pag-pix').innerText = fmtVal('R$ ' + pagPix.toFixed(2));
 document.getElementById('d-pag-cartao').innerText = fmtVal('R$ ' + pagCartao.toFixed(2));
@@ -758,7 +946,6 @@ resumoBarbHtml += `<div>👤 <b>${barb} (${pct}%):</b> ${valComissaoFmt}</div>`;
 document.getElementById('d-barbeiros-resumo').innerHTML = resumoBarbHtml || 'Nenhum dado.';
 
 let perfHtml = "";
-let diaHojeNum = dataAtual.getDate();
 d.b.forEach(b => {
 let atdsBarb = d.a.filter(x => x.barbeiro === b.nome);
 let atdsGeralFiltrados = atdsBarb.filter(x => {
@@ -780,6 +967,27 @@ return dtReg.getFullYear() === dtFiltro.getFullYear() && dtReg.getMonth() === dt
 let fatBarbDia = atdsBarbeiroDia.reduce((acc, curr) => acc + curr.v, 0);
 let fatMesBarb = atdsGeralFiltrados.reduce((acc, curr) => acc + curr.v, 0);
 
+// Gerar lista discriminada do período filtrado / geral
+let extratoHtml = "";
+if(atdsGeralFiltrados.length === 0){
+extratoHtml = `<p class="text-[11px] text-gray-400 italic">Nenhum atendimento no período.</p>`;
+} else {
+extratoHtml = `<div class="space-y-1 mt-2 max-h-40 overflow-y-auto pr-1">`;
+atdsGeralFiltrados.forEach(atd => {
+let tipoBadge = atd.tipo === 'Mensalista' ? '<span class="text-amber-400 font-bold">[Mensalista]</span>' : '<span class="text-blue-400 font-bold">[Avulso]</span>';
+extratoHtml += `<div class="bg-gray-800 p-1.5 rounded flex justify-between items-center text-[11px]">
+<div>
+<span class="text-gray-400">${atd.t}</span> - <b>${atd.c}</b> ${tipoBadge}<br>
+<span class="text-gray-300">🛠️ ${atd.s} ${atd.nomeProd ? '+ '+atd.nomeProd : ''}</span>
+</div>
+<div class="text-right">
+<span class="text-green-400 font-bold">${fmtVal('R$ ' + atd.v.toFixed(2))}</span>
+</div>
+</div>`;
+});
+extratoHtml += `</div>`;
+}
+
 perfHtml += `<div class="bg-gray-900 p-3 rounded mb-3 border border-gray-700">
 <div class="flex items-center justify-between mb-2">
 <div class="flex items-center gap-2">
@@ -791,7 +999,7 @@ ${b.foto ? `<img src="${b.foto}" class="w-7 h-7 rounded-full object-cover border
 <input type="date" value="${dataBarbeiroStr}" onchange="alterarDataBarbeiroPerf('${b.nome}', this.value)" class="bg-gray-800 border border-gray-700 text-white p-1 rounded text-[10px]">
 </div>
 </div>
-<div class="grid grid-cols-2 gap-2 bg-gray-800 p-2 rounded text-[11px]">
+<div class="grid grid-cols-2 gap-2 bg-gray-800 p-2 rounded text-[11px] mb-2">
 <div>
 <p class="text-[10px] text-gray-400 font-bold">${dataBarbeiroStr ? dataBarbeiroStr.split('-').reverse().join('/') : 'HOJE'}</p>
 <p>Atend.: <b>${atdsBarbeiroDia.length}</b></p>
@@ -802,6 +1010,10 @@ ${b.foto ? `<img src="${b.foto}" class="w-7 h-7 rounded-full object-cover border
 <p>Atend.: <b>${atdsGeralFiltrados.length}</b></p>
 <p class="text-green-400 font-bold">Fat: ${fmtVal('R$ ' + fatMesBarb.toFixed(2))}</p>
 </div>
+</div>
+<div>
+<p class="text-[11px] font-bold text-amber-400 mb-1">📋 Extrato Detalhado do Período:</p>
+${extratoHtml}
 </div>
 </div>`;
 });
@@ -828,7 +1040,8 @@ document.getElementById('lista-srv').innerHTML = d.servicos.length === 0 ? '<p c
 </div>
 </div>`).join('');
 
-document.getElementById('lista-atd').innerHTML = d.a.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum.</p>' : d.a.map(x => 
+let listaAtendimentosExibir = modoBarbeiro ? d.a.filter(x => x.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase()) : d.a;
+document.getElementById('lista-atd').innerHTML = listaAtendimentosExibir.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum atendimento.</p>' : listaAtendimentosExibir.map(x => 
 `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
 <div>
 <strong>✂️ ${x.barbeiro}</strong><br>
@@ -836,7 +1049,7 @@ document.getElementById('lista-atd').innerHTML = d.a.length === 0 ? '<p class="t
 <span class="text-gray-400 text-[10px]">${x.t}</span>
 </div>
 <div class="text-right">
-<span class="text-green-400 font-bold block mb-1">${fmtVal('R$' + x.v.toFixed(2))}</span>
+<span class="text-green-400 font-bold block mb-1">R$ ${x.v.toFixed(2)}</span>
 <button onclick="editarAtd(${x.id})" class="bg-blue-600 px-2 py-0.5 rounded text-[10px] mr-1">✏️</button>
 <button onclick="excluirAtd(${x.id})" class="bg-red-600 px-2 py-0.5 rounded text-[10px]">🗑️</button>
 </div>
@@ -852,7 +1065,7 @@ return `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items
 <span class="text-amber-400 text-[11px]">Atendimentos: ${qtdAtend} (Toque para ver histórico)</span>
 </div>
 <div class="flex gap-1" onclick="event.stopPropagation()">
-${cli.tel ? `<button onclick="enviarZap('${cli.tel}', '${cli.nome}')" class="bg-green-600 px-2 py-1 rounded text-[10px]" title="Enviar WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>` : ''}
+<button onclick="enviarZap('${cli.tel || ''}', '${cli.nome}')" class="bg-green-600 px-2 py-1 rounded text-[10px]" title="Enviar WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
 <button onclick="excluirCliente(${cli.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
 </div>
 </div>`;
@@ -860,7 +1073,7 @@ ${cli.tel ? `<button onclick="enviarZap('${cli.tel}', '${cli.nome}')" class="bg-
 
 document.getElementById('lista-est').innerHTML = d.e.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum produto.</p>' : d.e.map(x => 
 `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
-<div><b>📦 ${x.n}</b><br><span class="text-gray-400">Qtd: <b class="text-amber-400">${x.q}</b> | ${fmtVal('R$ ' + x.preco.toFixed(2))}</span></div>
+<div><b>📦 ${x.n}</b><br><span class="text-gray-400">Qtd: <b class="text-amber-400">${x.q}</b> | R$ ${x.preco.toFixed(2)}</span></div>
 <div class="flex items-center gap-1">
 <button onclick="altEst(${x.id},-1)" class="bg-gray-700 px-2 py-1 rounded font-bold">-</button>
 <button onclick="altEst(${x.id},1)" class="bg-gray-700 px-2 py-1 rounded font-bold">+</button>
@@ -870,7 +1083,7 @@ document.getElementById('lista-est').innerHTML = d.e.length === 0 ? '<p class="t
 
 document.getElementById('lista-desp').innerHTML = d.desp.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhuma despesa.</p>' : d.desp.map(x => 
 `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
-<div><b>💸 ${x.desc}</b><br><span class="text-red-400 font-bold">${fmtVal('R$ ' + x.val.toFixed(2))}</span> <span class="text-gray-400 text-[10px]">(${x.data})</span></div>
+<div><b>💸 ${x.desc}</b><br><span class="text-red-400 font-bold">R$ ${x.val.toFixed(2)}</span> <span class="text-gray-400 text-[10px]">(${x.data})</span></div>
 <button onclick="excluirDespesa(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
 </div>`).join('');
 
@@ -891,7 +1104,7 @@ document.getElementById('d-alertas').innerHTML = alertasHtml || 'Tudo em dia com
 
 document.getElementById('lista-men').innerHTML = d.m.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum mensalista.</p>' : d.m.map(x => 
 `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
-<span>👤 <b>${x.c}</b><br><span class="text-gray-400">Venc: ${x.v} | ${fmtVal('R$' + (x.val||0).toFixed(2))}</span><br><span class="${x.pago?'text-green-400':'text-red-400'}">${x.pago?'Pago':'Pendente'}</span></span>
+<span>👤 <b>${x.c}</b><br><span class="text-gray-400">Venc: ${x.v} | R$ ${(x.val||0).toFixed(2)}</span><br><span class="${x.pago?'text-green-400':'text-red-400'}">${x.pago?'Pago':'Pendente'}</span></span>
 <div>
 <button onclick="alternarPagamento(${x.id})" class="bg-gray-700 px-2 py-1 rounded text-[10px] mr-1">💰</button>
 <button onclick="excluirMensalista(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
