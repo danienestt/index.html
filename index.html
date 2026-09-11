@@ -13,7 +13,7 @@
 <span><i class="fa-solid fa-scissors"></i><span id="titulo-sistema">Barbearia System</span></span>
 </h1>
 <div class="flex gap-1" id="painel-botoes-topo">
-<button onclick="salvarJsonNoCelular()" class="bg-amber-600 hover:bg-amber-500 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1" title="Salvar JSON Atualizado"><i class="fa-solid fa-cloud-arrow-down"></i> Salvar JSON</button>
+<button onclick="salvarJsonNoCelular()" class="bg-amber-600 hover:bg-amber-500 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1" title="Salvar HTML Atualizado"><i class="fa-solid fa-cloud-arrow-down"></i> Salvar HTML</button>
 <button onclick="exportarDados()" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]" title="Salvar Backup"><i class="fa-solid fa-download"></i></button>
 <button onclick="importarDados()" class="bg-green-600 text-white px-2 py-1 rounded text-[10px]" title="Restaurar Backup"><i class="fa-solid fa-upload"></i></button>
 </div>
@@ -319,16 +319,23 @@ window.addEventListener('beforeunload', salvar);
 window.addEventListener('pagehide', salvar);
 
 function salvarJsonNoCelular(){
-let dadosAtuais = localStorage.getItem(DB_KEY) || JSON.stringify(d);
-let blob = new Blob([dadosAtuais], {type: "application/json;charset=utf-8;"});
-let url = URL.createObjectURL(blob);
-let a = document.createElement('a');
-a.href = url; 
-a.download = "dados.json"; 
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-URL.revokeObjectURL(url);
+  // Gera um HTML completo com os dados atuais embutidos
+  let dadosStr = JSON.stringify(d);
+  let htmlAtual = document.documentElement.outerHTML;
+  
+  // Substitui o dadosPadrao pelos dados atuais
+  let regex = /let dadosPadrao = \{[\s\S]*?\};/;
+  let novoHtml = htmlAtual.replace(regex, `let dadosPadrao = ${dadosStr};`);
+  
+  let blob = new Blob([novoHtml], {type: "text/html;charset=utf-8;"});
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement('a');
+  a.href = url; 
+  a.download = "barbearia_sistema.html"; 
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function alternarModoAcesso(){
@@ -876,6 +883,21 @@ verificarCliente(c);
 d.m.push({id: Date.now(), c: c.trim(), v, val: valPlano, pago: false, dataPagamento: null});
 salvar();
 }
+
+function editarMensalista(id){
+let m = d.m.find(x => x.id === id);
+if(!m) return;
+let nc = prompt('Editar Nome do Mensalista:', m.c); if(!nc) return;
+let nv = prompt('Editar Data de Vencimento (AAAA-MM-DD):', m.v); if(!nv) return;
+let nval = parseFloat(prompt('Editar Valor do Plano (R$):', m.val || 0)); if(isNaN(nval)) return;
+m.c = nc.trim();
+m.v = nv.trim();
+m.val = nval;
+verificarCliente(nc);
+salvar();
+alert("Mensalista atualizado com sucesso!");
+}
+
 function alternarPagamento(id){
 let m = d.m.find(x => x.id === id);
 if(m){ m.pago = !m.pago; m.dataPagamento = m.pago ? new Date().toISOString() : null; salvar(); }
@@ -1205,6 +1227,7 @@ document.getElementById('lista-men').innerHTML = d.m.length === 0 ? '<p class="t
 `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
 <span>👤 <b>${x.c}</b><br><span class="text-gray-400">Venc: ${x.v} | R$ ${(x.val||0).toFixed(2)}</span><br><span class="${x.pago?'text-green-400':'text-red-400'}">${x.pago?'Pago':'Pendente'}</span></span>
 <div>
+<button onclick="editarMensalista(${x.id})" class="bg-blue-600 px-2 py-1 rounded text-[10px] mr-1">✏️</button>
 <button onclick="alternarPagamento(${x.id})" class="bg-gray-700 px-2 py-1 rounded text-[10px] mr-1">💰</button>
 <button onclick="excluirMensalista(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
 </div>
