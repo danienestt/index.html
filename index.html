@@ -59,7 +59,7 @@
 <h3 class="text-sm font-bold text-amber-500 border-b border-gray-700 pb-2"><i class="fa-solid fa-list-check mr-1"></i> Selecionar Serviços e Produtos</h3>
 <div class="space-y-3 max-h-80 overflow-y-auto text-xs pr-1">
 <div>
-<p class="font-bold text-amber-400 mb-1">🛠️ Serviços (Selecione um ou mais):</p>
+<p class="font-bold text-amber-400 mb-1">🛠️ Serviços (Opcional):</p>
 <div id="multi-lista-servicos" class="space-y-1 bg-gray-900 p-2 rounded border border-gray-700"></div>
 </div>
 <div>
@@ -98,20 +98,29 @@
 
 <!-- DASHBOARD -->
 <div id="tab-dash" class="space-y-3">
+<!-- SELETOR DE DATA PARA O DASHBOARD -->
+<div class="bg-gray-800 p-3 rounded flex items-center justify-between gap-2">
+<div>
+<label class="text-[10px] text-gray-400 block mb-0.5">Exibir dados do dia:</label>
+<input type="date" id="dash-data-filtro" onchange="atualizar()" class="bg-gray-900 border border-gray-700 p-1.5 rounded text-xs text-white">
+</div>
+<button onclick="resetarDataDashHoje()" class="bg-gray-700 hover:bg-gray-600 text-white px-2.5 py-1.5 rounded text-xs font-bold mt-4">Hoje</button>
+</div>
+
 <div class="grid grid-cols-2 gap-2" id="bloco-cards-admin">
-<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Faturamento Hoje</p><p id="d-fat-hoje" class="text-lg font-bold text-green-400">R$ 0,00</p></div>
-<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Atendimentos Hoje</p><p id="d-qtd-hoje" class="text-lg font-bold text-amber-400">0</p></div>
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Faturamento do Dia</p><p id="d-fat-hoje" class="text-lg font-bold text-green-400">R$ 0,00</p></div>
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Atendimentos do Dia</p><p id="d-qtd-hoje" class="text-lg font-bold text-amber-400">0</p></div>
 </div>
 
 <!-- PAINEL EXCLUSIVO DO BARBEIRO (FATURAMENTO TOTAL E LÍQUIDO) -->
 <div id="bloco-card-barbeiro" class="hidden space-y-2">
 <div class="grid grid-cols-2 gap-2">
-<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Meu Faturamento Hoje</p><p id="barb-fat-hoje" class="text-lg font-bold text-green-400">R$ 0,00</p></div>
-<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Meus Atendimentos Hoje</p><p id="barb-qtd-hoje" class="text-lg font-bold text-amber-400">0</p></div>
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Meu Faturamento do Dia</p><p id="barb-fat-hoje" class="text-lg font-bold text-green-400">R$ 0,00</p></div>
+<div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Meus Atendimentos do Dia</p><p id="barb-qtd-hoje" class="text-lg font-bold text-amber-400">0</p></div>
 </div>
 <div class="bg-gray-800 p-3 rounded border border-amber-500/30 flex justify-between items-center">
 <div>
-<p class="text-xs text-gray-400">Líquido a Receber Hoje (<span id="barb-pct-comissao">50</span>%)</p>
+<p class="text-xs text-gray-400">Líquido a Receber no Dia (<span id="barb-pct-comissao">50</span>%)</p>
 <p id="barb-liquido-hoje" class="text-base font-bold text-blue-400">R$ 0,00</p>
 </div>
 <div class="text-right text-[10px] text-amber-400 font-medium">
@@ -121,7 +130,7 @@
 </div>
 
 <div class="bg-gray-800 p-3 rounded space-y-1 aba-admin" id="bloco-pagamentos-admin">
-<p class="text-xs font-bold text-amber-500 mb-1"><i class="fa-solid fa-wallet mr-1"></i> Formas de Pagamento (Hoje)</p>
+<p class="text-xs font-bold text-amber-500 mb-1"><i class="fa-solid fa-wallet mr-1"></i> Formas de Pagamento (Data Selecionada)</p>
 <div class="grid grid-cols-3 gap-1 text-[11px] text-gray-300">
 <div class="bg-gray-900 p-2 rounded text-center">💵 Dinheiro<br><b id="d-pag-din" class="text-green-400">R$ 0,00</b></div>
 <div class="bg-gray-900 p-2 rounded text-center">📱 PIX<br><b id="d-pag-pix" class="text-green-400">R$ 0,00</b></div>
@@ -133,13 +142,21 @@
 <button onclick="adicionarMovimentoDataEspecifica()" class="w-full bg-amber-600 hover:bg-amber-500 text-white p-2 rounded text-xs font-bold shadow flex items-center justify-center gap-1"><i class="fa-solid fa-plus-circle"></i> Lançar Atendimento p/ Outro Dia</button>
 </div>
 
+<!-- LISTA DE ATENDIMENTOS DO DIA SELECIONADO NA ABA INÍCIO -->
+<div class="bg-gray-800 p-3 rounded space-y-2">
+<p class="text-xs font-bold text-amber-500"><i class="fa-solid fa-list mr-1"></i> Atendimentos do Dia Selecionado</p>
+<div id="d-lista-atendimentos-dia" class="space-y-2 text-xs">
+<p class="text-gray-400 text-center">Nenhum atendimento nesta data.</p>
+</div>
+</div>
+
 <div class="grid grid-cols-2 gap-2 aba-admin" id="bloco-lucro-admin">
 <div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Faturamento do Mês</p><p id="d-fat-mes" class="text-base font-bold text-green-400">R$ 0,00</p></div>
 <div class="bg-gray-800 p-3 rounded"><p class="text-xs text-gray-400">Lucro Líquido (Mês)</p><p id="d-lucro-mes" class="text-base font-bold text-blue-400">R$ 0,00</p></div>
 </div>
 
 <div class="bg-gray-800 p-3 rounded aba-admin" id="bloco-comissao-admin">
-<p class="text-xs font-bold text-amber-500 mb-2">Comissão / Saldo Barbeiros</p>
+<p class="text-xs font-bold text-amber-500 mb-2">Comissão / Saldo Barbeiros (Mês)</p>
 <div id="d-barbeiros-resumo" class="text-xs text-gray-300 space-y-1">Nenhum atendimento registrado.</div>
 </div>
 
@@ -338,7 +355,11 @@ blocoComissao.classList.add('hidden');
 btnOlho.classList.add('hidden');
 painelTopo.classList.add('hidden');
 document.getElementById('titulo-sistema').innerText = `Barbearia - ${barbeiroLogado}`;
+// Se a aba ativa for exclusiva de admin, redireciona para Início
+let abaAtiva = document.querySelector('#menu-abas button.bg-amber-600');
+if(abaAtiva && ['btn-caixa','btn-perf','btn-barb','btn-srv','btn-desp'].includes(abaAtiva.id)){
 mudarAba('dash');
+}
 } else {
 lbl.innerHTML = `👑 Modo: Administrador (Gerente)`;
 adminElements.forEach(el => el.classList.remove('hidden'));
@@ -420,7 +441,7 @@ div.innerHTML = `
 <span><i class="fa-solid fa-calendar mr-1"></i> ${atd.t || 'Data não informada'}</span>
 <span class="text-green-400">${fmtVal('R$ ' + atd.v.toFixed(2))}</span>
 </div>
-<div class="text-gray-300"><b>Serviço(s):</b> ${atd.s}</div>
+<div class="text-gray-300"><b>Serviço(s):</b> ${atd.s || 'Nenhum'}</div>
 ${atd.nomeProd ? `<div class="text-gray-300"><b>Produto(s):</b> ${atd.nomeProd}</div>` : ''}
 <div class="text-[10px] text-gray-400">Barbeiro: ${atd.barbeiro} • Pagto: ${atd.pagamento || 'Dinheiro'}</div>
 `;
@@ -594,6 +615,12 @@ document.getElementById('filtro-data-fim').value = "";
 atualizar();
 }
 
+function resetarDataDashHoje(){
+let hojeStr = new Date().toISOString().split('T')[0];
+document.getElementById('dash-data-filtro').value = hojeStr;
+atualizar();
+}
+
 function alterarDataBarbeiroPerf(nomeBarbeiro, novaData){
 filtrosBarbeiroData[nomeBarbeiro] = novaData;
 atualizar();
@@ -682,7 +709,12 @@ pContainer.innerHTML = '<span class="text-gray-400">Nenhum produto no estoque.</
 d.e.forEach((p, idx) => {
 let div = document.createElement('div');
 div.className = "flex items-center justify-between text-white bg-gray-800 p-1.5 rounded";
-div.innerHTML = `<span><b>${p.n}</b> (Est: ${p.q} | R$ ${p.preco.toFixed(2)})</span> <input type="number" min="0" max="${p.q}" value="0" data-prod-idx="${idx}" class="w-14 bg-gray-900 border border-gray-700 text-center text-white rounded p-0.5 text-xs">`;
+div.innerHTML = `<span><b>${p.n}</b> (Est: <span id="estoque-qtd-${idx}">${p.q}</span> | R$ ${p.preco.toFixed(2)})</span> 
+<div class="flex items-center gap-1">
+<button type="button" onclick="mudarQtdModalProduto(${idx}, -1)" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-0.5 rounded font-bold">-</button>
+<span id="qtd-prod-modal-${idx}" class="w-6 text-center font-bold text-amber-400" data-val="0">0</span>
+<button type="button" onclick="mudarQtdModalProduto(${idx}, 1)" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-0.5 rounded font-bold">+</button>
+</div>`;
 pContainer.appendChild(div);
 });
 }
@@ -690,10 +722,22 @@ pContainer.appendChild(div);
 document.getElementById('modal-multiplos').classList.remove('hidden');
 }
 
+function mudarQtdModalProduto(prodIdx, delta){
+let spanEl = document.getElementById(`qtd-prod-modal-${prodIdx}`);
+let maxEstoque = d.e[prodIdx].q;
+let atual = parseInt(spanEl.getAttribute('data-val')) || 0;
+let novo = atual + delta;
+if(novo < 0) novo = 0;
+if(novo > maxEstoque){
+alert(`Estoque máximo disponível para este produto é ${maxEstoque}.`);
+novo = maxEstoque;
+}
+spanEl.setAttribute('data-val', novo);
+spanEl.innerText = novo;
+}
+
 function confirmarMultiplosServicosProdutos(){
 let checks = document.querySelectorAll('input[name="multi-serv"]:checked');
-if(checks.length === 0){ alert("Selecione pelo menos um serviço."); return; }
-
 let servicosSelecionados = [];
 let valServicosTotal = 0;
 checks.forEach(chk => {
@@ -703,15 +747,15 @@ valServicosTotal += sObj.preco;
 });
 let nomeServicosStr = servicosSelecionados.join(' + ');
 
-let inputsProd = document.querySelectorAll('input[data-prod-idx]');
+let spansProd = document.querySelectorAll('[id^="qtd-prod-modal-"]');
 let nomeProdArr = [];
 let valProdTotal = 0;
 let produtosComprados = [];
 
-inputsProd.forEach(inp => {
-let qtd = parseInt(inp.value) || 0;
+spansProd.forEach(span => {
+let qtd = parseInt(span.getAttribute('data-val')) || 0;
 if(qtd > 0){
-let pIdx = parseInt(inp.getAttribute('data-prod-idx'));
+let pIdx = parseInt(span.id.replace('qtd-prod-modal-', ''));
 let prodObj = d.e[pIdx];
 if(qtd > prodObj.q){ alert(`Estoque insuficiente para ${prodObj.n}!`); return; }
 produtosComprados.push({ prodObj, qtd });
@@ -719,6 +763,11 @@ nomeProdArr.push(`${prodObj.n} (x${qtd})`);
 valProdTotal += prodObj.preco * qtd;
 }
 });
+
+if(servicosSelecionados.length === 0 && produtosComprados.length === 0){
+alert("Selecione pelo menos um serviço ou produto."); 
+return;
+}
 
 let nomeProdutosStr = nomeProdArr.join(', ');
 let vTotal = valServicosTotal + valProdTotal;
@@ -772,7 +821,7 @@ function editarAtd(id){
 let item = d.a.find(x => x.id === id);
 if(!item) return;
 let nc = prompt('Editar Nome do Cliente:', item.c); if(!nc) return;
-let ns = prompt('Editar Serviço(s):', item.s); if(!ns) return;
+let ns = prompt('Editar Serviço(s):', item.s || '');
 let nv = parseFloat(prompt('Editar Valor Total (R$):', item.v)); if(isNaN(nv)) return;
 
 abrirSelecaoBotoes("Editar Forma de Pagamento:", [
@@ -830,12 +879,19 @@ window.open(`https://wa.me/55${tLimpo}?text=${msg}`, '_blank');
 }
 
 function atualizar(){
-let hojeStr = new Date().toLocaleDateString();
+let dataDashInput = document.getElementById('dash-data-filtro');
+if(!dataDashInput.value){
+dataDashInput.value = new Date().toISOString().split('T')[0];
+}
+let dataSelecionadaStr = dataDashInput.value; // AAAA-MM-DD
+let dataSelecionadaObj = new Date(dataSelecionadaStr + 'T00:00:00');
+let dataSelecionadaFormatada = dataSelecionadaObj.toLocaleDateString();
+
 let dataAtual = new Date();
 let mesAtual = dataAtual.getMonth();
 let anoAtual = dataAtual.getFullYear();
 
-let fatHoje = 0, qtdHoje = 0, fatMes = 0, fatAno = 0;
+let fatDiaSel = 0, qtdDiaSel = 0, fatMes = 0, fatAno = 0;
 let pagDin = 0, pagPix = 0, pagCartao = 0;
 let comissaoBarbeiro = {};
 d.b.forEach(b => comissaoBarbeiro[b.nome] = 0);
@@ -852,29 +908,35 @@ if(dataFimFiltro && dataFimFiltro !== dataInicioFiltro) txtF += ` até ${dataFim
 textoFiltro.innerHTML = `🔍 Filtrando período: <b>${txtF}</b>`;
 } else { painelFiltro.classList.add('hidden'); }
 
-let barbFatHoje = 0;
-let barbQtdHoje = 0;
-let barbLiquidoHoje = 0;
+let barbFatDiaSel = 0;
+let barbQtdDiaSel = 0;
+let barbLiquidoDiaSel = 0;
+
+let atendimentosDiaSelArray = [];
 
 d.a.forEach(x => {
 let dataReg = x.dataIso ? new Date(x.dataIso) : new Date();
 let valTotal = x.v || 0;
+let dataRegIsoStr = dataReg.toISOString().split('T')[0];
 
-if(dataReg.toLocaleDateString() === hojeStr){
-fatHoje += valTotal; qtdHoje++;
+if(dataRegIsoStr === dataSelecionadaStr){
+fatDiaSel += valTotal; 
+qtdDiaSel++;
+atendimentosDiaSelArray.push(x);
+
 if(x.pagamento === 'Dinheiro') pagDin += valTotal;
 else if(x.pagamento === 'PIX') pagPix += valTotal;
 else if(x.pagamento === 'Cartão') pagCartao += valTotal;
 
 if(modoBarbeiro && x.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase()){
-barbFatHoje += valTotal;
-barbQtdHoje++;
+barbFatDiaSel += valTotal;
+barbQtdDiaSel++;
 
 let barbObj = d.b.find(b => b.nome.toLowerCase() === barbeiroLogado.toLowerCase());
 let pctComissao = barbObj && barbObj.comissao !== undefined ? barbObj.comissao : 50;
 let parteServico = x.valServ !== undefined ? x.valServ : (valTotal - (x.valProd || 0));
 let comissaoServ = (x.tipo === 'Mensalista') ? 0 : (parteServico * (pctComissao / 100));
-barbLiquidoHoje += comissaoServ;
+barbLiquidoDiaSel += comissaoServ;
 }
 }
 
@@ -895,7 +957,7 @@ d.m.forEach(men => {
 if(men.pago && men.dataPagamento){
 let dataPagObj = new Date(men.dataPagamento);
 let valPlano = men.val || 0;
-if(dataPagObj.toLocaleDateString() === hojeStr){ fatHoje += valPlano; pagPix += valPlano; }
+if(dataPagObj.toISOString().split('T')[0] === dataSelecionadaStr){ fatDiaSel += valPlano; pagPix += valPlano; }
 if(dataPagObj.getMonth() === mesAtual && dataPagObj.getFullYear() === anoAtual){ fatMes += valPlano; }
 if(dataPagObj.getFullYear() === anoAtual){ fatAno += valPlano; }
 }
@@ -906,8 +968,8 @@ atendMensalista.forEach(atd => {
 let dataReg = new Date(atd.dataIso);
 if(dataReg.getMonth() === mesAtual && dataReg.getFullYear() === anoAtual){
 if(comissaoBarbeiro[atd.barbeiro] !== undefined){ comissaoBarbeiro[atd.barbeiro] += valorPorAtendimento; }
-if(modoBarbeiro && atd.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase() && dataReg.toLocaleDateString() === hojeStr){
-barbLiquidoHoje += valorPorAtendimento;
+if(modoBarbeiro && atd.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase() && dataReg.toISOString().split('T')[0] === dataSelecionadaStr){
+barbLiquidoDiaSel += valorPorAtendimento;
 }
 }
 });
@@ -921,12 +983,12 @@ return dt.getMonth() === mesAtual && dt.getFullYear() === anoAtual;
 
 let lucroLiquidoMes = fatMes - totalDespesasMes;
 
-document.getElementById('d-fat-hoje').innerText = fmtVal('R$ ' + fatHoje.toFixed(2));
-document.getElementById('d-qtd-hoje').innerText = qtdHoje;
+document.getElementById('d-fat-hoje').innerText = fmtVal('R$ ' + fatDiaSel.toFixed(2));
+document.getElementById('d-qtd-hoje').innerText = qtdDiaSel;
 
-document.getElementById('barb-fat-hoje').innerText = 'R$ ' + barbFatHoje.toFixed(2);
-document.getElementById('barb-qtd-hoje').innerText = barbQtdHoje;
-document.getElementById('barb-liquido-hoje').innerText = 'R$ ' + barbLiquidoHoje.toFixed(2);
+document.getElementById('barb-fat-hoje').innerText = 'R$ ' + barbFatDiaSel.toFixed(2);
+document.getElementById('barb-qtd-hoje').innerText = barbQtdDiaSel;
+document.getElementById('barb-liquido-hoje').innerText = 'R$ ' + barbLiquidoDiaSel.toFixed(2);
 let barbObjCorrente = d.b.find(b => b.nome.toLowerCase() === barbeiroLogado.toLowerCase());
 document.getElementById('barb-pct-comissao').innerText = barbObjCorrente ? barbObjCorrente.comissao : 50;
 
@@ -935,6 +997,25 @@ document.getElementById('d-pag-pix').innerText = fmtVal('R$ ' + pagPix.toFixed(2
 document.getElementById('d-pag-cartao').innerText = fmtVal('R$ ' + pagCartao.toFixed(2));
 document.getElementById('d-fat-mes').innerText = fmtVal('R$ ' + fatMes.toFixed(2));
 document.getElementById('d-lucro-mes').innerText = fmtVal('R$ ' + lucroLiquidoMes.toFixed(2));
+
+// Renderizar atendimentos do dia selecionado na aba Início
+let listaAtdDiaContainer = document.getElementById('d-lista-atendimentos-dia');
+let atdsExibirDia = modoBarbeiro ? atendimentosDiaSelArray.filter(x => x.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase()) : atendimentosDiaSelArray;
+
+if(atdsExibirDia.length === 0){
+listaAtdDiaContainer.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">Nenhum atendimento nesta data.</p>';
+} else {
+listaAtdDiaContainer.innerHTML = atdsExibirDia.map(x => `
+<div class="bg-gray-900 p-2 rounded flex justify-between items-center border border-gray-700">
+<div>
+<strong>✂️ ${x.barbeiro}</strong><br>
+👤 ${x.c} - ${x.s || 'Nenhum'} ${x.nomeProd ? '+ '+x.nomeProd : ''} <span class="text-amber-300">(${x.pagamento || 'Dinheiro'})</span>
+</div>
+<div class="text-right">
+<span class="text-green-400 font-bold block">${fmtVal('R$ ' + x.v.toFixed(2))}</span>
+</div>
+</div>`).join('');
+}
 
 let resumoBarbHtml = "";
 for(let barb in comissaoBarbeiro){
@@ -962,12 +1043,11 @@ let atdsBarbeiroDia = dataBarbeiroStr ? atdsBarb.filter(x => {
 let dtReg = new Date(x.dataIso);
 let dtFiltro = new Date(dataBarbeiroStr + 'T00:00:00');
 return dtReg.getFullYear() === dtFiltro.getFullYear() && dtReg.getMonth() === dtFiltro.getMonth() && dtReg.getDate() === dtFiltro.getDate();
-}) : atdsBarb.filter(x => x.t === hojeStr);
+}) : atdsBarb.filter(x => x.t === new Date().toLocaleDateString());
 
 let fatBarbDia = atdsBarbeiroDia.reduce((acc, curr) => acc + curr.v, 0);
 let fatMesBarb = atdsGeralFiltrados.reduce((acc, curr) => acc + curr.v, 0);
 
-// Gerar lista discriminada do período filtrado / geral
 let extratoHtml = "";
 if(atdsGeralFiltrados.length === 0){
 extratoHtml = `<p class="text-[11px] text-gray-400 italic">Nenhum atendimento no período.</p>`;
@@ -978,7 +1058,7 @@ let tipoBadge = atd.tipo === 'Mensalista' ? '<span class="text-amber-400 font-bo
 extratoHtml += `<div class="bg-gray-800 p-1.5 rounded flex justify-between items-center text-[11px]">
 <div>
 <span class="text-gray-400">${atd.t}</span> - <b>${atd.c}</b> ${tipoBadge}<br>
-<span class="text-gray-300">🛠️ ${atd.s} ${atd.nomeProd ? '+ '+atd.nomeProd : ''}</span>
+<span class="text-gray-300">🛠️ ${atd.s || 'Nenhum'} ${atd.nomeProd ? '+ '+atd.nomeProd : ''}</span>
 </div>
 <div class="text-right">
 <span class="text-green-400 font-bold">${fmtVal('R$ ' + atd.v.toFixed(2))}</span>
@@ -1045,7 +1125,7 @@ document.getElementById('lista-atd').innerHTML = listaAtendimentosExibir.length 
 `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
 <div>
 <strong>✂️ ${x.barbeiro}</strong><br>
-👤 ${x.c} - ${x.s} ${x.nomeProd ? '+ '+x.nomeProd : ''} <span class="text-amber-300">(${x.pagamento || 'Dinheiro'})</span><br>
+👤 ${x.c} - ${x.s || 'Nenhum'} ${x.nomeProd ? '+ '+x.nomeProd : ''} <span class="text-amber-300">(${x.pagamento || 'Dinheiro'})</span><br>
 <span class="text-gray-400 text-[10px]">${x.t}</span>
 </div>
 <div class="text-right">
