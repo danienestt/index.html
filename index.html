@@ -1,6 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    set,
+    get,
+    child
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyApqpZDIZZkYvIZe6HU77tAkSJwIlhDHfQ",
+    authDomain: "barbearia-9c9f2.firebaseapp.com",
+    projectId: "barbearia-9c9f2",
+    storageBucket: "barbearia-9c9f2.firebasestorage.app",
+    messagingSenderId: "943643823026",
+    appId: "1:943643823026:web:458da8687c53d17db7b2ab",
+    measurementId: "G-V63PTDMFWW"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  window.firebaseDatabase = database;
+  window.firebaseRef = ref;
+  window.firebaseSet = set;
+  window.firebaseGet = get;
+  window.firebaseChild = child;
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Barbearia - Controle Completo</title>
@@ -310,9 +341,36 @@ if(!d.caixaTroco) d.caixaTroco = {};
 if(!d.taxas) d.taxas = { deb: 1.5, cred: 3.5 };
 if(d.b && d.b.length > 0 && d.b[0].comissao === undefined) { d.b.forEach(b => b.comissao = 50); }
 
-function salvar(){ 
-try { localStorage.setItem(DB_KEY, JSON.stringify(d)); } catch(e) { console.error(e); }
-atualizar(); 
+async function salvar(){ 
+
+    try {
+
+        // Salva uma cópia local
+        localStorage.setItem(DB_KEY, JSON.stringify(d));
+
+        // Salva os dados online no Firebase
+        const referencia = window.firebaseRef(
+            window.firebaseDatabase,
+            'barbearia/dados'
+        );
+
+        await window.firebaseSet(referencia, d);
+
+        console.log('Dados salvos no Firebase.');
+
+    } catch(e) {
+
+        console.error('Erro ao salvar no Firebase:', e);
+
+        // Mesmo sem internet, mantém o backup local
+        try {
+            localStorage.setItem(DB_KEY, JSON.stringify(d));
+        } catch(erroLocal) {
+            console.error('Erro no backup local:', erroLocal);
+        }
+    }
+
+    atualizar(); 
 }
 
 window.addEventListener('beforeunload', salvar);
