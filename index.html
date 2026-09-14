@@ -25,6 +25,8 @@
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
 
+window.firebaseReady = Promise.resolve();
+
   window.firebaseDatabase = database;
   window.firebaseRef = ref;
   window.firebaseSet = set;
@@ -331,10 +333,70 @@ let itensCacheBuscaModal = [];
 let callbackCacheBuscaModal = null;
 let fluxoAtdAtual = null;
 
-try {
-let salvo = localStorage.getItem(DB_KEY);
-if(salvo) { d = JSON.parse(salvo); }
-} catch(e) { console.error("Erro ao carregar", e); }
+async function carregarDadosFirebase() {
+
+await window.firebaseReady;
+
+    try {
+
+        // Primeiro tenta o backup local
+        const salvo = localStorage.getItem(DB_KEY);
+
+        if (salvo) {
+            d = JSON.parse(salvo);
+        }
+
+        // Depois tenta buscar a versão online
+        if (window.firebaseDatabase) {
+
+            const referencia = window.firebaseRef(
+                window.firebaseDatabase,
+                'barbearia/dados'
+            );
+
+            const resultado = await window.firebaseGet(referencia);
+
+            if (resultado.exists()) {
+
+                d = resultado.val();
+
+                localStorage.setItem(
+                    DB_KEY,
+                    JSON.stringify(d)
+                );
+
+                console.log('✅ Dados carregados do Firebase.');
+
+            } else {
+
+                console.log('ℹ️ Ainda não existem dados no Firebase.');
+
+                await window.firebaseSet(referencia, d);
+
+                console.log('✅ Dados iniciais enviados para o Firebase.');
+            }
+        }
+
+        // Garante que campos novos existam
+        if (!d.desp) d.desp = [];
+        if (!d.caixaTroco) d.caixaTroco = {};
+        if (!d.taxas) d.taxas = { deb: 1.5, cred: 3.5 };
+
+        if (d.b && d.b.length > 0 && d.b[0].comissao === undefined) {
+            d.b.forEach(b => b.comissao = 50);
+        }
+
+        atualizar();
+
+    } catch(e) {
+
+        console.error("Erro ao carregar dados:", e);
+
+        atualizar();
+    }
+}
+
+carregarDadosFirebase();
 
 if(!d.desp) d.desp = [];
 if(!d.caixaTroco) d.caixaTroco = {};
