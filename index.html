@@ -340,11 +340,8 @@ await window.firebaseReady;
     try {
 
         // Primeiro tenta o backup local
-        const salvo = localStorage.getItem(DB_KEY);
-
-        if (salvo) {
-            d = JSON.parse(salvo);
-        }
+       // O Firebase será a fonte principal dos dados.
+// O backup local será usado somente se o Firebase não estiver disponível.
 
         // Depois tenta buscar a versão online
         if (window.firebaseDatabase) {
