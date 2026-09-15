@@ -365,6 +365,11 @@ await window.firebaseReady;
 
                 d = resultado.val();
 
+if (!d || typeof d !== 'object') {
+    console.error("Dados inválidos recebidos do Firebase.");
+    d = dadosPadrao;
+}
+
                 localStorage.setItem(
                     DB_KEY,
                     JSON.stringify(d)
@@ -403,6 +408,7 @@ await window.firebaseReady;
 
 carregarDadosFirebase().then(() => {
     atualizar();
+    window.firebaseDadosCarregados = true;
 });
 
 });
@@ -415,6 +421,8 @@ if(d.b && d.b.length > 0 && d.b[0].comissao === undefined) { d.b.forEach(b => b.
 async function salvar(){ 
 
 await window.firebaseReady;
+
+if (!window.firebaseDadosCarregados) return;
 
     try {
 
