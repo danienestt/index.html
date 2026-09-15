@@ -31,7 +31,6 @@ window.firebaseReady = new Promise(resolve => {
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
 
-window.firebaseReady = Promise.resolve();
 
   window.firebaseDatabase = database;
   window.firebaseRef = ref;
