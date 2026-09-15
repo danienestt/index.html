@@ -408,7 +408,7 @@ if (!d || typeof d !== 'object') {
 
 carregarDadosFirebase().then(() => {
     atualizar();
-    window.firebaseDadosCarregados = true;
+   
 });
 
 });
@@ -422,7 +422,7 @@ async function salvar(){
 
 await window.firebaseReady;
 
-if (!window.firebaseDadosCarregados) return;
+
 
     try {
 
