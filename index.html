@@ -393,7 +393,9 @@ await window.firebaseReady;
     }
 }
 
-carregarDadosFirebase();
+carregarDadosFirebase().then(() => {
+    atualizar();
+});
 
 if(!d.desp) d.desp = [];
 if(!d.caixaTroco) d.caixaTroco = {};
