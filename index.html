@@ -2,6 +2,12 @@
 <html lang="pt-BR">
 <head>
 
+<script>
+window.firebaseReady = new Promise(resolve => {
+  window.firebaseReadyResolve = resolve;
+});
+</script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
   import {
@@ -32,6 +38,8 @@ window.firebaseReady = Promise.resolve();
   window.firebaseSet = set;
   window.firebaseGet = get;
   window.firebaseChild = child;
+window.firebaseReadyResolve(true);
+
 </script>
 
 <meta charset="UTF-8">
