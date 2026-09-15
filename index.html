@@ -1449,6 +1449,16 @@ async function fazerLoginFirebase() {
     }
 }
 
+window.firebaseAuthState(window.firebaseAuth, (user) => {
+    const telaLogin = document.getElementById('tela-login');
+
+    if (user) {
+        telaLogin.style.display = 'none';
+    } else {
+        telaLogin.style.display = 'flex';
+    }
+});
+
 </script>
 </body>
 </html>
