@@ -381,7 +381,13 @@ if (!d || typeof d !== 'object') {
 
                 console.log('ℹ️ Ainda não existem dados no Firebase.');
 
-                await window.firebaseSet(referencia, d);
+                try {
+    await window.firebaseSet(referencia, d);
+    alert("✅ ENVIO AO FIREBASE DEU CERTO");
+} catch (erroFirebase) {
+    alert("❌ ERRO FIREBASE: " + erroFirebase.message);
+    console.error(erroFirebase);
+}
 
                 console.log('✅ Dados iniciais enviados para o Firebase.');
             }
