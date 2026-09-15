@@ -430,7 +430,7 @@ await window.firebaseReady;
             'barbearia/dados'
         );
 
-console.log("SALVANDO AGORA:", JSON.stringify(d));
+alert("Tentando salvar no Firebase. Registros: " + (d.a ? d.a.length : "sem registros"));
 
         await window.firebaseSet(referencia, d);
 
