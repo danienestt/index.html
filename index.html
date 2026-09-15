@@ -381,13 +381,7 @@ if (!d || typeof d !== 'object') {
 
                 console.log('ℹ️ Ainda não existem dados no Firebase.');
 
-                try {
-    await window.firebaseSet(referencia, d);
-    alert("✅ ENVIO AO FIREBASE DEU CERTO");
-} catch (erroFirebase) {
-    alert("❌ ERRO FIREBASE: " + erroFirebase.message);
-    console.error(erroFirebase);
-}
+                await window.firebaseSet(referencia, d);
 
                 console.log('✅ Dados iniciais enviados para o Firebase.');
             }
@@ -435,8 +429,6 @@ await window.firebaseReady;
             window.firebaseDatabase,
             'barbearia/dados'
         );
-
-alert("Tentando salvar no Firebase. Registros: " + (d.a ? d.a.length : "sem registros"));
 
         await window.firebaseSet(referencia, d);
 
