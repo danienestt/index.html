@@ -404,10 +404,7 @@ async function salvar(){
 
     try {
 
-        // Salva uma cópia local
-        localStorage.setItem(DB_KEY, JSON.stringify(d));
-
-        // Salva os dados online no Firebase
+        // Salva no Firebase
         const referencia = window.firebaseRef(
             window.firebaseDatabase,
             'barbearia/dados'
@@ -415,15 +412,24 @@ async function salvar(){
 
         await window.firebaseSet(referencia, d);
 
-        console.log('Dados salvos no Firebase.');
+        // Depois salva uma cópia local
+        localStorage.setItem(
+            DB_KEY,
+            JSON.stringify(d)
+        );
+
+        console.log('✅ Dados salvos no Firebase.');
 
     } catch(e) {
 
         console.error('Erro ao salvar no Firebase:', e);
 
-        // Mesmo sem internet, mantém o backup local
+        // Se estiver sem internet, mantém o backup local
         try {
-            localStorage.setItem(DB_KEY, JSON.stringify(d));
+            localStorage.setItem(
+                DB_KEY,
+                JSON.stringify(d)
+            );
         } catch(erroLocal) {
             console.error('Erro no backup local:', erroLocal);
         }
