@@ -412,6 +412,8 @@ if(d.b && d.b.length > 0 && d.b[0].comissao === undefined) { d.b.forEach(b => b.
 
 async function salvar(){ 
 
+await window.firebaseReady;
+
     try {
 
         // Salva no Firebase
