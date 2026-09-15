@@ -403,7 +403,9 @@ await window.firebaseReady;
 
 carregarDadosFirebase().then(() => {
     atualizar();
-    alert("Dados carregados do Firebase. Clientes: " + (d.clientes ? d.clientes.length : "não encontrado"));
+    alert("Dados recebidos: " + JSON.stringify(d).substring(0, 500));
+});
+
 });
 
 if(!d.desp) d.desp = [];
