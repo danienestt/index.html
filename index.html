@@ -370,12 +370,6 @@ if (!d || typeof d !== 'object') {
     d = dadosPadrao;
 }
 
-if (d.a && !Array.isArray(d.a)) d.a = Object.values(d.a);
-if (d.b && !Array.isArray(d.b)) d.b = Object.values(d.b);
-if (d.cli && !Array.isArray(d.cli)) d.cli = Object.values(d.cli);
-if (d.e && !Array.isArray(d.e)) d.e = Object.values(d.e);
-if (d.servicos && !Array.isArray(d.servicos)) d.servicos = Object.values(d.servicos);
-
 localStorage.setItem(
     DB_KEY,
     JSON.stringify(d)
