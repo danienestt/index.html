@@ -422,7 +422,6 @@ async function salvar(){
 await window.firebaseReady;
 
 
-
     try {
 
         // Salva no Firebase
@@ -430,6 +429,8 @@ await window.firebaseReady;
             window.firebaseDatabase,
             'barbearia/dados'
         );
+
+console.log("SALVANDO AGORA:", JSON.stringify(d));
 
         await window.firebaseSet(referencia, d);
 
