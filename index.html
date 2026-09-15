@@ -370,15 +370,6 @@ if (!d || typeof d !== 'object') {
     d = dadosPadrao;
 }
 
-localStorage.setItem(
-    DB_KEY,
-    JSON.stringify(d)
-);
-
-console.log('✅ Dados carregados do Firebase.');
-
-}
-
                 localStorage.setItem(
                     DB_KEY,
                     JSON.stringify(d)
@@ -418,8 +409,6 @@ console.log('✅ Dados carregados do Firebase.');
 carregarDadosFirebase().then(() => {
     atualizar();
    
-});
-
 });
 
 if(!d.desp) d.desp = [];
