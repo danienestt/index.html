@@ -31,7 +31,6 @@ window.firebaseReady = new Promise(resolve => {
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
 
-
   window.firebaseDatabase = database;
   window.firebaseRef = ref;
   window.firebaseSet = set;
@@ -101,7 +100,7 @@ window.firebaseReadyResolve(true);
 <h3 class="text-sm font-bold text-amber-500 border-b border-gray-700 pb-2"><i class="fa-solid fa-list-check mr-1"></i> Selecionar Serviços e Produtos</h3>
 <div class="space-y-3 max-h-80 overflow-y-auto text-xs pr-1">
 <div>
-<p class="font-bold text-amber-400 mb-1">🛠️ Serviços (Opcional):</p>
+<p class="font-bold text-amber-400 mb-1">🛠️ Serviços:</p>
 <div id="multi-lista-servicos" class="space-y-1 bg-gray-900 p-2 rounded border border-gray-700"></div>
 </div>
 <div>
@@ -140,6 +139,11 @@ window.firebaseReadyResolve(true);
 
 <!-- DASHBOARD -->
 <div id="tab-dash" class="space-y-3">
+<!-- BOTÃO NOVO ATENDIMENTO NA TELA DE INÍCIO -->
+<div class="bg-gray-800 p-3 rounded">
+<button onclick="promptAtd()" class="w-full bg-amber-600 hover:bg-amber-500 text-white p-2.5 rounded text-xs font-bold shadow flex items-center justify-center gap-1"><i class="fa-solid fa-plus-circle"></i> + Novo Atendimento / Venda</button>
+</div>
+
 <!-- SELETOR DE DATA PARA O DASHBOARD -->
 <div class="bg-gray-800 p-3 rounded flex items-center justify-between gap-2">
 <div>
@@ -181,7 +185,7 @@ window.firebaseReadyResolve(true);
 </div>
 
 <div class="bg-gray-800 p-3 rounded">
-<button onclick="adicionarMovimentoDataEspecifica()" class="w-full bg-amber-600 hover:bg-amber-500 text-white p-2 rounded text-xs font-bold shadow flex items-center justify-center gap-1"><i class="fa-solid fa-plus-circle"></i> Lançar Atendimento p/ Outro Dia</button>
+<button onclick="adicionarMovimentoDataEspecifica()" class="w-full bg-gray-700 hover:bg-gray-600 text-white p-2 rounded text-xs font-bold shadow flex items-center justify-center gap-1"><i class="fa-solid fa-calendar-plus"></i> Lançar Atendimento p/ Outro Dia</button>
 </div>
 
 <!-- LISTA DE ATENDIMENTOS DO DIA SELECIONADO NA ABA INÍCIO -->
@@ -341,74 +345,49 @@ let itensCacheBuscaModal = [];
 let callbackCacheBuscaModal = null;
 let fluxoAtdAtual = null;
 
-async function carregarDadosFirebase() {
-
-await window.firebaseReady;
-
-    try {
-
-        // Primeiro tenta o backup local
-       // O Firebase será a fonte principal dos dados.
-// O backup local será usado somente se o Firebase não estiver disponível.
-
-        // Depois tenta buscar a versão online
-        if (window.firebaseDatabase) {
-
-            const referencia = window.firebaseRef(
-                window.firebaseDatabase,
-                'barbearia/dados'
-            );
-
-            const resultado = await window.firebaseGet(referencia);
-
-            if (resultado.exists()) {
-
-d = resultado.val();
-
-if (!d || typeof d !== 'object') {
-    console.error("Dados inválidos recebidos do Firebase.");
-    d = dadosPadrao;
+// Função auxiliar para obter a data local no formato AAAA-MM-DD sem erro de fuso horário UTC
+function obterDataLocalIso(dateObj = new Date()) {
+  let ano = dateObj.getFullYear();
+  let mes = String(dateObj.getMonth() + 1).padStart(2, '0');
+  let dia = String(dateObj.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
 }
 
-                localStorage.setItem(
-                    DB_KEY,
-                    JSON.stringify(d)
-                );
+function obterDataFormatadaBR(dateObj = new Date()) {
+  let ano = dateObj.getFullYear();
+  let mes = String(dateObj.getMonth() + 1).padStart(2, '0');
+  let dia = String(dateObj.getDate()).padStart(2, '0');
+  return `${dia}/${mes}/${ano}`;
+}
 
-                console.log('✅ Dados carregados do Firebase.');
-
+async function carregarDadosFirebase() {
+await window.firebaseReady;
+    try {
+        if (window.firebaseDatabase) {
+            const referencia = window.firebaseRef(window.firebaseDatabase, 'barbearia/dados');
+            const resultado = await window.firebaseGet(referencia);
+            if (resultado.exists()) {
+                d = resultado.val();
+                if (!d || typeof d !== 'object') { d = dadosPadrao; }
+                localStorage.setItem(DB_KEY, JSON.stringify(d));
             } else {
-
-                console.log('ℹ️ Ainda não existem dados no Firebase.');
-
                 await window.firebaseSet(referencia, d);
-
-                console.log('✅ Dados iniciais enviados para o Firebase.');
             }
         }
-
-        // Garante que campos novos existam
         if (!d.desp) d.desp = [];
         if (!d.caixaTroco) d.caixaTroco = {};
         if (!d.taxas) d.taxas = { deb: 1.5, cred: 3.5 };
-
         if (d.b && d.b.length > 0 && d.b[0].comissao === undefined) {
             d.b.forEach(b => b.comissao = 50);
         }
-
         atualizar();
-
     } catch(e) {
-
-        console.error("Erro ao carregar dados:", e);
-
         atualizar();
     }
 }
 
 carregarDadosFirebase().then(() => {
     atualizar();
-   
 });
 
 if(!d.desp) d.desp = [];
@@ -417,69 +396,28 @@ if(!d.taxas) d.taxas = { deb: 1.5, cred: 3.5 };
 if(d.b && d.b.length > 0 && d.b[0].comissao === undefined) { d.b.forEach(b => b.comissao = 50); }
 
 async function salvar(){ 
-
-
 await window.firebaseReady;
-
-
     try {
-
-        // Salva no Firebase
-        const referencia = window.firebaseRef(
-            window.firebaseDatabase,
-            'barbearia/dados'
-        );
-
+        const referencia = window.firebaseRef(window.firebaseDatabase, 'barbearia/dados');
         await window.firebaseSet(referencia, d);
-
-        // Depois salva uma cópia local
-        localStorage.setItem(
-            DB_KEY,
-            JSON.stringify(d)
-        );
-
-        console.log('✅ Dados salvos no Firebase.');
-
+        localStorage.setItem(DB_KEY, JSON.stringify(d));
     } catch(e) {
-
-        console.error('Erro ao salvar no Firebase:', e);
-
-        // Se estiver sem internet, mantém o backup local
-        try {
-            localStorage.setItem(
-                DB_KEY,
-                JSON.stringify(d)
-            );
-        } catch(erroLocal) {
-            console.error('Erro no backup local:', erroLocal);
-        }
+        try { localStorage.setItem(DB_KEY, JSON.stringify(d)); } catch(err) {}
     }
-
     atualizar(); 
 }
 
-// Salvamento automático desativado temporariamente.
-// window.addEventListener('beforeunload', salvar);
-// window.addEventListener('pagehide', salvar);
-
 function salvarJsonNoCelular(){
-  // Gera um HTML completo com os dados atuais embutidos
   let dadosStr = JSON.stringify(d);
   let htmlAtual = document.documentElement.outerHTML;
-  
-  // Substitui o dadosPadrao pelos dados atuais
   let regex = /let dadosPadrao = \{[\s\S]*?\};/;
   let novoHtml = htmlAtual.replace(regex, `let dadosPadrao = ${dadosStr};`);
-  
   let blob = new Blob([novoHtml], {type: "text/html;charset=utf-8;"});
   let url = URL.createObjectURL(blob);
   let a = document.createElement('a');
-  a.href = url; 
-  a.download = "barbearia_sistema.html"; 
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = "barbearia_sistema.html"; 
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 function alternarModoAcesso(){
@@ -713,7 +651,7 @@ function excluirCliente(id){ if(confirm("Excluir cliente?")){ d.cli = d.cli.filt
 function promptNovaDespesa(){
 let desc = prompt('Descrição da Despesa (ex: Conta de Luz, Lâminas):'); if(!desc) return;
 let val = parseFloat(prompt('Valor da Despesa (R$):', '50')); if(isNaN(val)) return;
-let hoje = new Date().toISOString().split('T')[0];
+let hoje = obterDataLocalIso();
 let dataDesp = prompt('Data da Despesa (AAAA-MM-DD):', hoje) || hoje;
 d.desp.unshift({id: Date.now(), desc, val, data: dataDesp});
 salvar();
@@ -733,7 +671,7 @@ if(dataStr){ d.caixaTroco[dataStr] = val; salvar(); }
 }
 
 function inicializarCaixaTab(){
-let hojeStr = new Date().toISOString().split('T')[0];
+let hojeStr = obterDataLocalIso();
 let inp = document.getElementById('caixa-data');
 if(!inp.value) inp.value = hojeStr;
 document.getElementById('taxa-deb').value = d.taxas.deb;
@@ -742,12 +680,12 @@ atualizarCaixa();
 }
 
 function atualizarCaixa(){
-let dataStr = document.getElementById('caixa-data').value || new Date().toISOString().split('T')[0];
+let dataStr = document.getElementById('caixa-data').value || obterDataLocalIso();
 document.getElementById('caixa-troco').value = d.caixaTroco[dataStr] !== undefined ? d.caixaTroco[dataStr] : 0;
 
 let atdsDia = d.a.filter(x => {
 let dt = x.dataIso ? new Date(x.dataIso) : new Date();
-return dt.toISOString().split('T')[0] === dataStr;
+return obterDataLocalIso(dt) === dataStr;
 });
 
 let despDia = d.desp.filter(x => x.data === dataStr);
@@ -786,7 +724,7 @@ atualizar();
 }
 
 function resetarDataDashHoje(){
-let hojeStr = new Date().toISOString().split('T')[0];
+let hojeStr = obterDataLocalIso();
 document.getElementById('dash-data-filtro').value = hojeStr;
 atualizar();
 }
@@ -797,7 +735,7 @@ atualizar();
 }
 
 function adicionarMovimentoDataEspecifica(){
-let dataStr = prompt("Informe a data do atendimento (AAAA-MM-DD):", new Date().toISOString().split('T')[0]);
+let dataStr = prompt("Informe a data do atendimento (AAAA-MM-DD):", obterDataLocalIso());
 if(!dataStr) return;
 let partes = dataStr.trim().split('-');
 if(partes.length !== 3) { alert("Formato inválido."); return; }
@@ -864,9 +802,14 @@ if(d.servicos.length === 0){
 sContainer.innerHTML = '<span class="text-gray-400">Nenhum serviço cadastrado.</span>';
 } else {
 d.servicos.forEach((s, idx) => {
-let div = document.createElement('label');
-div.className = "flex items-center justify-between text-white bg-gray-800 p-1.5 rounded cursor-pointer hover:bg-gray-700";
-div.innerHTML = `<span class="flex items-center gap-2"><input type="checkbox" name="multi-serv" value="${idx}" class="w-4 h-4 accent-amber-600"> ${s.nome}</span> <span class="text-green-400">R$ ${s.preco.toFixed(2)}</span>`;
+let div = document.createElement('div');
+div.className = "flex items-center justify-between text-white bg-gray-800 p-1.5 rounded";
+div.innerHTML = `<span><b>${s.nome}</b> (R$ ${s.preco.toFixed(2)})</span> 
+<div class="flex items-center gap-1">
+<button type="button" onclick="mudarQtdModalServico(${idx}, -1)" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-0.5 rounded font-bold">-</button>
+<span id="qtd-serv-modal-${idx}" class="w-6 text-center font-bold text-amber-400" data-val="0">0</span>
+<button type="button" onclick="mudarQtdModalServico(${idx}, 1)" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-0.5 rounded font-bold">+</button>
+</div>`;
 sContainer.appendChild(div);
 });
 }
@@ -892,6 +835,15 @@ pContainer.appendChild(div);
 document.getElementById('modal-multiplos').classList.remove('hidden');
 }
 
+function mudarQtdModalServico(servIdx, delta){
+let spanEl = document.getElementById(`qtd-serv-modal-${servIdx}`);
+let atual = parseInt(spanEl.getAttribute('data-val')) || 0;
+let novo = atual + delta;
+if(novo < 0) novo = 0;
+spanEl.setAttribute('data-val', novo);
+spanEl.innerText = novo;
+}
+
 function mudarQtdModalProduto(prodIdx, delta){
 let spanEl = document.getElementById(`qtd-prod-modal-${prodIdx}`);
 let maxEstoque = d.e[prodIdx].q;
@@ -907,13 +859,20 @@ spanEl.innerText = novo;
 }
 
 function confirmarMultiplosServicosProdutos(){
-let checks = document.querySelectorAll('input[name="multi-serv"]:checked');
+let spansServ = document.querySelectorAll('[id^="qtd-serv-modal-"]');
 let servicosSelecionados = [];
 let valServicosTotal = 0;
-checks.forEach(chk => {
-let sObj = d.servicos[parseInt(chk.value)];
+
+spansServ.forEach(span => {
+let qtd = parseInt(span.getAttribute('data-val')) || 0;
+if(qtd > 0){
+let sIdx = parseInt(span.id.replace('qtd-serv-modal-', ''));
+let sObj = d.servicos[sIdx];
+for(let i = 0; i < qtd; i++){
 servicosSelecionados.push(sObj.nome);
 valServicosTotal += sObj.preco;
+}
+}
 });
 let nomeServicosStr = servicosSelecionados.join(' + ');
 
@@ -960,7 +919,7 @@ d.a.unshift({
 id: Date.now(), barbeiro: fluxoAtdAtual.barbeiro, c: fluxoAtdAtual.cliente.trim(), tel, s: nomeServicosStr, valServ: valServicosTotal,
 v: vTotal, tipo: fluxoAtdAtual.tipo, pagamento, prodId: produtosComprados.length > 0 ? produtosComprados[0].prodObj.id : null, 
 valProd: valProdTotal, nomeProd: nomeProdutosStr,
-dataIso: fluxoAtdAtual.dataObj.toISOString(), t: fluxoAtdAtual.dataObj.toLocaleDateString()
+dataIso: fluxoAtdAtual.dataObj.toISOString(), t: obterDataFormatadaBR(fluxoAtdAtual.dataObj)
 });
 salvar();
 alert("Atendimento lançado com sucesso!");
@@ -980,7 +939,7 @@ let agora = new Date();
 d.a.unshift({
 id: Date.now(), barbeiro, c: cliente.trim(), tel, s: servico, valServ: vTotal - valProd,
 v: vTotal, tipo, pagamento, prodId, valProd, nomeProd,
-dataIso: agora.toISOString(), t: agora.toLocaleDateString()
+dataIso: agora.toISOString(), t: obterDataFormatadaBR(agora)
 });
 salvar();
 });
@@ -1021,7 +980,7 @@ function excluirEstoque(id){ if(confirm("Remover produto?")){ d.e = d.e.filter(x
 
 function promptMen(){
 let c = prompt('Nome do Mensalista:'); if(!c) return;
-let v = prompt('Data de Vencimento (AAAA-MM-DD):', new Date().toISOString().split('T')[0]); if(!v) return;
+let v = prompt('Data de Vencimento (AAAA-MM-DD):', obterDataLocalIso()); if(!v) return;
 let valPlano = parseFloat(prompt('Valor Total do Plano (R$):', '120')) || 0;
 verificarCliente(c);
 d.m.push({id: Date.now(), c: c.trim(), v, val: valPlano, pago: false, dataPagamento: null});
@@ -1065,11 +1024,11 @@ window.open(`https://wa.me/55${tLimpo}?text=${msg}`, '_blank');
 function atualizar(){
 let dataDashInput = document.getElementById('dash-data-filtro');
 if(!dataDashInput.value){
-dataDashInput.value = new Date().toISOString().split('T')[0];
+dataDashInput.value = obterDataLocalIso();
 }
 let dataSelecionadaStr = dataDashInput.value;
-let dataSelecionadaObj = new Date(dataSelecionadaStr + 'T00:00:00');
-let dataSelecionadaFormatada = dataSelecionadaObj.toLocaleDateString();
+let partesDataSel = dataSelecionadaStr.split('-');
+let dataSelecionadaObj = new Date(partesDataSel[0], partesDataSel[1] - 1, partesDataSel[2]);
 
 let dataAtual = new Date();
 let mesAtual = dataAtual.getMonth();
@@ -1101,7 +1060,7 @@ let atendimentosDiaSelArray = [];
 d.a.forEach(x => {
 let dataReg = x.dataIso ? new Date(x.dataIso) : new Date();
 let valTotal = x.v || 0;
-let dataRegIsoStr = dataReg.toISOString().split('T')[0];
+let dataRegIsoStr = obterDataLocalIso(dataReg);
 
 if(dataRegIsoStr === dataSelecionadaStr){
 fatDiaSel += valTotal; 
@@ -1141,7 +1100,7 @@ d.m.forEach(men => {
 if(men.pago && men.dataPagamento){
 let dataPagObj = new Date(men.dataPagamento);
 let valPlano = men.val || 0;
-if(dataPagObj.toISOString().split('T')[0] === dataSelecionadaStr){ fatDiaSel += valPlano; pagPix += valPlano; }
+if(obterDataLocalIso(dataPagObj) === dataSelecionadaStr){ fatDiaSel += valPlano; pagPix += valPlano; }
 if(dataPagObj.getMonth() === mesAtual && dataPagObj.getFullYear() === anoAtual){ fatMes += valPlano; }
 if(dataPagObj.getFullYear() === anoAtual){ fatAno += valPlano; }
 }
@@ -1152,7 +1111,7 @@ atendMensalista.forEach(atd => {
 let dataReg = new Date(atd.dataIso);
 if(dataReg.getMonth() === mesAtual && dataReg.getFullYear() === anoAtual){
 if(comissaoBarbeiro[atd.barbeiro] !== undefined){ comissaoBarbeiro[atd.barbeiro] += valorPorAtendimento; }
-if(modoBarbeiro && atd.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase() && dataReg.toISOString().split('T')[0] === dataSelecionadaStr){
+if(modoBarbeiro && atd.barbeiro.toLowerCase() === barbeiroLogado.toLowerCase() && obterDataLocalIso(dataReg) === dataSelecionadaStr){
 barbLiquidoDiaSel += valorPorAtendimento;
 }
 }
@@ -1224,9 +1183,11 @@ return (dComp >= dInicioLimpo && dComp <= dFimLimpo);
 let dataBarbeiroStr = filtrosBarbeiroData[b.nome] || "";
 let atdsBarbeiroDia = dataBarbeiroStr ? atdsBarb.filter(x => {
 let dtReg = new Date(x.dataIso);
-let dtFiltro = new Date(dataBarbeiroStr + 'T00:00:00');
-return dtReg.getFullYear() === dtFiltro.getFullYear() && dtReg.getMonth() === dtFiltro.getMonth() && dtReg.getDate() === dtFiltro.getDate();
-}) : atdsBarb.filter(x => x.t === new Date().toLocaleDateString());
+return obterDataLocalIso(dtReg) === dataBarbeiroStr;
+}) : atdsBarb.filter(x => {
+let dtReg = new Date(x.dataIso);
+return obterDataLocalIso(dtReg) === obterDataLocalIso();
+});
 
 let fatBarbDia = atdsBarbeiroDia.reduce((acc, curr) => acc + curr.v, 0);
 let fatMesBarb = atdsGeralFiltrados.reduce((acc, curr) => acc + curr.v, 0);
