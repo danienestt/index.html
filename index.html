@@ -360,6 +360,33 @@ function obterDataFormatadaBR(dateObj = new Date()) {
   return `${dia}/${mes}/${ano}`;
 }
 
+// Função auxiliar para calcular a data de vencimento atualizada no mês corrente
+function calcularVencimentoAtual(dataOriginalStr) {
+  if (!dataOriginalStr) return "";
+  let partes = dataOriginalStr.split('-');
+  let diaOriginal = partes.length === 3 ? parseInt(partes[2]) : parseInt(dataOriginalStr.substring(dataOriginalStr.lastIndexOf('-') + 1)) || 10;
+  
+  let hoje = new Date();
+  let anoAtual = hoje.getFullYear();
+  let mesAtual = hoje.getMonth();
+  
+  // Garante que se o dia excede o último dia do mês corrente (ex: dia 31 em um mês de 30 dias), ajusta para o último dia válido
+  let ultimoDiaMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+  let diaAjustado = Math.min(diaOriginal, ultimoDiaMes);
+  
+  let mesStr = String(mesAtual + 1).padStart(2, '0');
+  let diaStr = String(diaAjustado).padStart(2, '0');
+  return `${anoAtual}-${mesStr}-${diaStr}`;
+}
+
+// NOVA FUNÇÃO: verifica se o mensalista já pagou NO MÊS/ANO ATUAL
+function isMensalistaPagoNoPeriodoAtual(m) {
+  if (!m.pago || !m.dataPagamento) return false;
+  let dataPag = new Date(m.dataPagamento);
+  let hoje = new Date();
+  return dataPag.getFullYear() === hoje.getFullYear() && dataPag.getMonth() === hoje.getMonth();
+}
+
 async function carregarDadosFirebase() {
 await window.firebaseReady;
     try {
@@ -980,7 +1007,15 @@ function excluirEstoque(id){ if(confirm("Remover produto?")){ d.e = d.e.filter(x
 
 function promptMen(){
 let c = prompt('Nome do Mensalista:'); if(!c) return;
-let v = prompt('Data de Vencimento (AAAA-MM-DD):', obterDataLocalIso()); if(!v) return;
+let v = prompt('Dia ou Data de Vencimento (AAAA-MM-DD ou dia ex: 10):', '10'); if(!v) return;
+// Se o usuário digitar apenas o dia (ex: "10"), converte para AAAA-MM-DD usando o mês e ano atuais
+if(!v.includes('-') && !isNaN(v)){
+  let hoje = new Date();
+  let ano = hoje.getFullYear();
+  let mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  let dia = String(v.trim()).padStart(2, '0');
+  v = `${ano}-${mes}-${dia}`;
+}
 let valPlano = parseFloat(prompt('Valor Total do Plano (R$):', '120')) || 0;
 verificarCliente(c);
 d.m.push({id: Date.now(), c: c.trim(), v, val: valPlano, pago: false, dataPagamento: null});
@@ -991,7 +1026,14 @@ function editarMensalista(id){
 let m = d.m.find(x => x.id === id);
 if(!m) return;
 let nc = prompt('Editar Nome do Mensalista:', m.c); if(!nc) return;
-let nv = prompt('Editar Data de Vencimento (AAAA-MM-DD):', m.v); if(!nv) return;
+let nv = prompt('Editar Data/Dia de Vencimento (AAAA-MM-DD):', m.v); if(!nv) return;
+if(!nv.includes('-') && !isNaN(nv)){
+  let hoje = new Date();
+  let ano = hoje.getFullYear();
+  let mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  let dia = String(nv.trim()).padStart(2, '0');
+  nv = `${ano}-${mes}-${dia}`;
+}
 let nval = parseFloat(prompt('Editar Valor do Plano (R$):', m.val || 0)); if(isNaN(nval)) return;
 m.c = nc.trim();
 m.v = nv.trim();
@@ -1259,7 +1301,7 @@ document.getElementById('lista-srv').innerHTML = d.servicos.length === 0 ? '<p c
 `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
 <span><b>🛠️ ${s.nome}</b> - <span class="text-green-400">${fmtVal('R$ ' + s.preco.toFixed(2))}</span></span>
 <div>
-<button onclick="editarServico(${i})" class="bg-blue-600 px-2.5 py-1 rounded text-[10px] mr-1">✏️</button>
+<button onclick="editarServico(${i})" class="bg-blue-600 px-2.5 py-1 rounded text-[10px] mr-1">✏</button>
 <button onclick="excluirServico(${i})" class="bg-red-600 px-2.5 py-1 rounded text-[10px]">🗑️</button>
 </div>
 </div>`).join('');
@@ -1302,7 +1344,7 @@ document.getElementById('lista-est').innerHTML = d.e.length === 0 ? '<p class="t
 <div class="flex items-center gap-1">
 <button onclick="altEst(${x.id},-1)" class="bg-gray-700 px-2 py-1 rounded font-bold">-</button>
 <button onclick="altEst(${x.id},1)" class="bg-gray-700 px-2 py-1 rounded font-bold">+</button>
-<button onclick="excluirEstoque(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px] ml-1">🗑️</button>
+<button onclick="excluirEstoque(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px] ml-1">🗑️️</button>
 </div>
 </div>`).join('');
 
@@ -1312,31 +1354,58 @@ document.getElementById('lista-desp').innerHTML = d.desp.length === 0 ? '<p clas
 <button onclick="excluirDespesa(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
 </div>`).join('');
 
+// ====== ALERTAS DE VENCIMENTO (AGORA USA A NOVA FUNÇÃO) ======
 let alertasHtml = "";
 let hojeDate = new Date(); hojeDate.setHours(0,0,0,0);
 d.m.forEach(x => {
-let dataVenc = new Date(x.v + 'T00:00:00');
+let dataVencAtualizadaStr = calcularVencimentoAtual(x.v);
+let dataVenc = new Date(dataVencAtualizadaStr + 'T00:00:00');
 let diffDias = Math.ceil((dataVenc - hojeDate) / (1000 * 60 * 60 * 24));
-if(!x.pago && diffDias <= 5){
+if(!isMensalistaPagoNoPeriodoAtual(x) && diffDias <= 5){
 let statusMsg = diffDias < 0 ? `⚠️ Vencido há ${Math.abs(diffDias)} dia(s)!` : (diffDias === 0 ? `⚠️ Vence HOJE!` : `⚠️ Vence em ${diffDias} dia(s)!`);
+let dataVencBr = dataVencAtualizadaStr.split('-').reverse().join('/');
 alertasHtml += `<div class="flex justify-between items-center bg-gray-900 p-2 rounded mb-1 border-l-2 border-red-500">
-<span><b>${x.c}</b> (Venc: ${x.v})<br><span class="text-red-400 font-bold">${statusMsg}</span></span>
+<span><b>${x.c}</b> (Venc: ${dataVencBr})<br><span class="text-red-400 font-bold">${statusMsg}</span></span>
 <button onclick="alternarPagamento(${x.id})" class="bg-gray-700 px-2 py-1 rounded text-[10px]">Marcar Pago</button>
 </div>`;
 }
 });
 document.getElementById('d-alertas').innerHTML = alertasHtml || 'Tudo em dia com os prazos!';
 
+// ====== LISTA DE MENSALISTAS (TAMBÉM USA A NOVA FUNÇÃO) ======
 document.getElementById('qtd-total-men').innerText = d.m.length;
-document.getElementById('lista-men').innerHTML = d.m.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum mensalista.</p>' : d.m.map(x => 
-`<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center">
-<span>👤 <b>${x.c}</b><br><span class="text-gray-400">Venc: ${x.v} | R$ ${(x.val||0).toFixed(2)}</span><br><span class="${x.pago?'text-green-400':'text-red-400'}">${x.pago?'Pago':'Pendente'}</span></span>
+document.getElementById('lista-men').innerHTML = d.m.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum mensalista.</p>' : d.m.map(x => {
+let dataVencAtualizadaStr = calcularVencimentoAtual(x.v);
+let dataVencBr = dataVencAtualizadaStr.split('-').reverse().join('/');
+let dataVencObj = new Date(dataVencAtualizadaStr + 'T00:00:00');
+let diffDiasMensalista = Math.ceil((dataVencObj - hojeDate) / (1000 * 60 * 60 * 24));
+
+let pagoAtual = isMensalistaPagoNoPeriodoAtual(x);
+
+let avisoInformativo = "";
+let classeBorda = "border-gray-700";
+if(!pagoAtual) {
+  if(diffDiasMensalista < 0) {
+    avisoInformativo = `<br><span class="text-red-400 font-bold">⚠️ Vencido há ${Math.abs(diffDiasMensalista)} dia(s)!</span>`;
+    classeBorda = "border-red-500 bg-red-950/20";
+  } else if(diffDiasMensalista === 0) {
+    avisoInformativo = `<br><span class="text-amber-400 font-bold">⚠️ Vence HOJE!</span>`;
+    classeBorda = "border-amber-500 bg-amber-950/20";
+  } else if(diffDiasMensalista <= 5) {
+    avisoInformativo = `<br><span class="text-yellow-400 font-bold">⚠️ Vence em ${diffDiasMensalista} dia(s)!</span>`;
+    classeBorda = "border-yellow-500 bg-yellow-950/20";
+  }
+}
+
+return `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center border ${classeBorda}">
+<span>👤 <b>${x.c}</b><br><span class="text-gray-300">Vencimento: <b class="text-amber-400">${dataVencBr}</b> | R$ ${(x.val||0).toFixed(2)}</span><br><span class="${pagoAtual?'text-green-400 font-bold':'text-red-400 font-bold'}">${pagoAtual?'Pago':'Pendente'}</span>${avisoInformativo}</span>
 <div>
-<button onclick="editarMensalista(${x.id})" class="bg-blue-600 px-2 py-1 rounded text-[10px] mr-1">✏️</button>
+<button onclick="editarMensalista(${x.id})" class="bg-blue-600 px-2 py-1 rounded text-[10px] mr-1">✏️️</button>
 <button onclick="alternarPagamento(${x.id})" class="bg-gray-700 px-2 py-1 rounded text-[10px] mr-1">💰</button>
 <button onclick="excluirMensalista(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
 </div>
-</div>`).join('');
+</div>`;
+}).join('');
 }
 
 atualizar();
