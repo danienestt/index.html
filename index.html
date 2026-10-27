@@ -267,11 +267,31 @@ window.firebaseReadyResolve(true);
 <input type="date" id="filtro-data-fim" onchange="aplicarFiltroDatas()" class="w-full bg-gray-900 border border-gray-700 p-1.5 rounded text-xs text-white">
 </div>
 </div>
-<button onclick="limparFiltroDia()" class="w-full bg-gray-700 hover:bg-gray-600 text-white p-1.5 rounded text-xs font-bold">Ver Hoje / Limpar Filtro</button>
+<button onclick="limparFiltroDia()" class="w-full bg-gray-700 hover:bg-gray-600 text-white p-1.5 rounded text-xs font-bold">Ver Todo o Histórico / Limpar Filtro</button>
 </div>
 
 <div id="painel-filtro-ativo" class="hidden bg-blue-900/40 border border-blue-600 p-2 rounded text-xs flex justify-between items-center">
 <span id="texto-filtro-ativo">Filtro ativo</span>
+</div>
+
+<!-- NOVO CARD: RESUMO DO FATURAMENTO TOTAL NO PERÍODO SELECIONADO -->
+<div class="bg-gray-800 p-3 rounded space-y-2 border border-amber-500/40 shadow">
+<p class="text-xs font-bold text-amber-500"><i class="fa-solid fa-sack-dollar mr-1"></i> Total Faturado da Barbearia no Período</p>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-gray-900 p-2.5 rounded">
+<p class="text-[10px] text-gray-400">Faturamento Bruto</p>
+<p id="perf-total-faturado" class="text-lg font-bold text-green-400">R$ 0,00</p>
+</div>
+<div class="bg-gray-900 p-2.5 rounded">
+<p class="text-[10px] text-gray-400">Total Atendimentos</p>
+<p id="perf-total-atendimentos" class="text-lg font-bold text-amber-400">0</p>
+</div>
+</div>
+<div class="bg-gray-900 p-2 rounded text-[11px] grid grid-cols-3 gap-1 text-center text-gray-300">
+<div>💵 Dinheiro<br><b id="perf-pag-din" class="text-green-400">R$ 0,00</b></div>
+<div>📱 PIX<br><b id="perf-pag-pix" class="text-green-400">R$ 0,00</b></div>
+<div>💳 Cartão<br><b id="perf-pag-cartao" class="text-green-400">R$ 0,00</b></div>
+</div>
 </div>
 
 <div class="bg-gray-800 p-3 rounded">
@@ -1093,6 +1113,58 @@ if(dataFimFiltro && dataFimFiltro !== dataInicioFiltro) txtF += ` até ${dataFim
 textoFiltro.innerHTML = `🔍 Filtrando período: <b>${txtF}</b>`;
 } else { painelFiltro.classList.add('hidden'); }
 
+// CÁLCULO DO FATURAMENTO TOTAL GERAL DO PERÍODO SELECIONADO NA TAB PERFORMANCE
+let totalFatGeralPeriodo = 0;
+let totalQtdGeralPeriodo = 0;
+let perfPagDin = 0, perfPagPix = 0, perfPagCartao = 0;
+
+d.a.forEach(atd => {
+let dtReg = new Date(atd.dataIso);
+let atendeFiltro = true;
+
+if(dataIniObj){
+let dComp = new Date(dtReg.getFullYear(), dtReg.getMonth(), dtReg.getDate());
+let dInicioLimpo = new Date(dataIniObj.getFullYear(), dataIniObj.getMonth(), dataIniObj.getDate());
+let dFimLimpo = new Date(dataFimObj.getFullYear(), dataFimObj.getMonth(), dataFimObj.getDate());
+atendeFiltro = (dComp >= dInicioLimpo && dComp <= dFimLimpo);
+}
+
+if(atendeFiltro){
+let v = atd.v || 0;
+totalFatGeralPeriodo += v;
+totalQtdGeralPeriodo++;
+let p = atd.pagamento || 'Dinheiro';
+if(p === 'Dinheiro') perfPagDin += v;
+else if(p === 'PIX') perfPagPix += v;
+else if(p === 'Cartão') perfPagCartao += v;
+}
+});
+
+// Inclui pagamentos de mensalistas no período geral
+d.m.forEach(men => {
+if(men.pago && men.dataPagamento){
+let dtPag = new Date(men.dataPagamento);
+let atendeFiltro = true;
+if(dataIniObj){
+let dComp = new Date(dtPag.getFullYear(), dtPag.getMonth(), dtPag.getDate());
+let dInicioLimpo = new Date(dataIniObj.getFullYear(), dataIniObj.getMonth(), dataIniObj.getDate());
+let dFimLimpo = new Date(dataFimObj.getFullYear(), dataFimObj.getMonth(), dataFimObj.getDate());
+atendeFiltro = (dComp >= dInicioLimpo && dComp <= dFimLimpo);
+}
+if(atendeFiltro){
+let v = men.val || 0;
+totalFatGeralPeriodo += v;
+perfPagPix += v;
+}
+}
+});
+
+document.getElementById('perf-total-faturado').innerText = fmtVal('R$ ' + totalFatGeralPeriodo.toFixed(2));
+document.getElementById('perf-total-atendimentos').innerText = totalQtdGeralPeriodo;
+document.getElementById('perf-pag-din').innerText = fmtVal('R$ ' + perfPagDin.toFixed(2));
+document.getElementById('perf-pag-pix').innerText = fmtVal('R$ ' + perfPagPix.toFixed(2));
+document.getElementById('perf-pag-cartao').innerText = fmtVal('R$ ' + perfPagCartao.toFixed(2));
+
 let barbFatDiaSel = 0;
 let barbQtdDiaSel = 0;
 let barbLiquidoDiaSel = 0;
@@ -1344,7 +1416,7 @@ document.getElementById('lista-est').innerHTML = d.e.length === 0 ? '<p class="t
 <div class="flex items-center gap-1">
 <button onclick="altEst(${x.id},-1)" class="bg-gray-700 px-2 py-1 rounded font-bold">-</button>
 <button onclick="altEst(${x.id},1)" class="bg-gray-700 px-2 py-1 rounded font-bold">+</button>
-<button onclick="excluirEstoque(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px] ml-1">🗑️️</button>
+<button onclick="excluirEstoque(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px] ml-1">🗑</button>
 </div>
 </div>`).join('');
 
@@ -1354,7 +1426,7 @@ document.getElementById('lista-desp').innerHTML = d.desp.length === 0 ? '<p clas
 <button onclick="excluirDespesa(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
 </div>`).join('');
 
-// ====== ALERTAS DE VENCIMENTO (AGORA USA A NOVA FUNÇÃO) ======
+// ====== ALERTAS DE VENCIMENTO ======
 let alertasHtml = "";
 let hojeDate = new Date(); hojeDate.setHours(0,0,0,0);
 d.m.forEach(x => {
@@ -1372,7 +1444,7 @@ alertasHtml += `<div class="flex justify-between items-center bg-gray-900 p-2 ro
 });
 document.getElementById('d-alertas').innerHTML = alertasHtml || 'Tudo em dia com os prazos!';
 
-// ====== LISTA DE MENSALISTAS (TAMBÉM USA A NOVA FUNÇÃO) ======
+// ====== LISTA DE MENSALISTAS ======
 document.getElementById('qtd-total-men').innerText = d.m.length;
 document.getElementById('lista-men').innerHTML = d.m.length === 0 ? '<p class="text-xs text-gray-400 text-center">Nenhum mensalista.</p>' : d.m.map(x => {
 let dataVencAtualizadaStr = calcularVencimentoAtual(x.v);
@@ -1400,7 +1472,7 @@ if(!pagoAtual) {
 return `<div class="bg-gray-800 p-2.5 rounded text-xs flex justify-between items-center border ${classeBorda}">
 <span>👤 <b>${x.c}</b><br><span class="text-gray-300">Vencimento: <b class="text-amber-400">${dataVencBr}</b> | R$ ${(x.val||0).toFixed(2)}</span><br><span class="${pagoAtual?'text-green-400 font-bold':'text-red-400 font-bold'}">${pagoAtual?'Pago':'Pendente'}</span>${avisoInformativo}</span>
 <div>
-<button onclick="editarMensalista(${x.id})" class="bg-blue-600 px-2 py-1 rounded text-[10px] mr-1">✏️️</button>
+<button onclick="editarMensalista(${x.id})" class="bg-blue-600 px-2 py-1 rounded text-[10px] mr-1">✏</button>
 <button onclick="alternarPagamento(${x.id})" class="bg-gray-700 px-2 py-1 rounded text-[10px] mr-1">💰</button>
 <button onclick="excluirMensalista(${x.id})" class="bg-red-600 px-2 py-1 rounded text-[10px]">🗑️</button>
 </div>
@@ -1413,3 +1485,4 @@ atualizar();
 </script>
 </body>
 </html>
+
